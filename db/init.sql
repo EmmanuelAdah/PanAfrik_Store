@@ -3,12 +3,13 @@
 -- Initial Setup
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+
 -- 1. Users (The Foundation)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     full_name VARCHAR(100) NOT NULL,
+    password_hash TEXT NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('merchant', 'customer')),
     country CHAR(2) NOT NULL CHECK (country IN ('NG', 'GH', 'KE', 'ZA')),
     base_currency CHAR(3) NOT NULL CHECK (base_currency IN ('NGN', 'GHS', 'KES', 'ZAR')),

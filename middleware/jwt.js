@@ -43,4 +43,17 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
-module.exports = authenticateToken;
+const generateToken = (payload) => {
+    return jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        {
+            expiresIn: '1d',
+            issuer: 'Pan-Afrik Store'
+        });
+}
+
+module.exports = {
+    authenticateToken,
+    generateToken
+};

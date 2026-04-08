@@ -4,7 +4,7 @@ const userLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 5, // Limit each user to 5 requests per minute
 
-    // Explicitly set the 429 status code
+    // Explicitly set the 429 status codes
     statusCode: 429,
 
     // Customizing the response body

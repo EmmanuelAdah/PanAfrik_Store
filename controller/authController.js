@@ -1,54 +1,75 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+const {generateToken} = require('../middleware/jwt');
+const logger = require('../utils/logger');
 const { validateRegistration } = require('../utils/validation');
 
-const registerUser = async (req, res) => {
-    // 1. Validate Input First (Don't waste CPU hashing if data is bad)
+exports.registerUser = async (req, res) => {
+
     const { error } = validateRegistration(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
-    const { email, password, full_name, role, country, base_currency } = req.body;
+    const { first_name, last_name, email, password, role, country, base_currency } = req.body;
 
     try {
-        // 2. Check for existing user (Fast SELECT before slow BCRYPT)
-        const userExists = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (userExists.rows.length > 0) {
-            return res.status(400).json({ error: "Email already in use" });
-        }
+        const full_name = `${first_name.trim().toUpperCase()} ${last_name.trim().toUpperCase()}`;
+        const hashedPassword = await bcrypt.hash(password);
 
-        // 3. Security: Hash Password
-        const saltRounds = 12; // Slightly higher for 2026 standards
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const userId = uuidv4();
-
-        // 4. Database Persistence
         const query = `
-            INSERT INTO users (id, email, password_hash, full_name, role, country, base_currency)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id, email, full_name, role, base_currency, country
+            WITH attempt AS (
+                INSERT INTO users (full_name, email, password_hash, role, country, base_currency)
+                VALUES ($1, LOWER($2), $3, $4, $5, $6)
+                ON CONFLICT (email) DO NOTHING
+                RETURNING id, full_name, email, role, country, base_currency, FALSE as email_exists
+            )
+            SELECT * FROM attempt
+            UNION ALL
+            SELECT id, full_name, email, role, country, base_currency, TRUE as email_exists 
+            FROM users 
+            WHERE email = LOWER($2)
+            LIMIT 1;
         `;
 
         const { rows } = await db.query(query, [
             userId,
-            email.toLowerCase().trim(), // Sanitize strings
-            hashedPassword,
             full_name.trim(),
+            email.toLowerCase().trim(),
+            hashedPassword,
             role,
             country,
             base_currency
         ]);
 
-        // 5. Response (Avoid sending back the password_hash even by accident)
+        const user = rows[0];
+
+        if (user.email_exists) {
+            logger.warn('Registration conflict: Email already exists', { email });
+
+            return res.status(409).json({
+                error: "Conflict",
+                message: "This email is already registered."
+            });
+        }
+
+        const token = generateToken(generatePayload(user));
+
         res.status(201).json({
             success: true,
             message: "Registration successful",
-            user: rows[0]
+            user: generatePayload(user),
+            token: token
         });
 
     } catch (err) {
-        // Log the actual error for you, but send a generic one to the user
         console.error(`[Registration Error]: ${err.message}`);
         res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 };
+
+function generatePayload(user){
+    return {
+        id: user.id,
+        email: user.email,
+        role: user.role
+    }
+}
