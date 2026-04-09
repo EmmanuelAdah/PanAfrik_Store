@@ -1,13 +1,22 @@
 const Joi = require('joi');
 
 const registerSchema = Joi.object({
-    full_name: Joi.string()
+    first_name: Joi.string()
         .min(3)
-        .max(100)
+        .max(50)
         .required()
         .messages({
-            'string.empty': 'Full name is required',
-            'string.min': 'Full name must be at least 3 characters long'
+            'string.empty': 'First name is required',
+            'string.min': 'First name must be at least 3 characters long'
+        }),
+
+    last_name: Joi.string()
+        .min(3)
+        .max(50)
+        .required()
+        .messages({
+            'string.empty': 'Last name is required',
+            'string.min': 'Last name must be at least 3 characters long'
         }),
 
     email: Joi.string()
@@ -42,7 +51,6 @@ const registerSchema = Joi.object({
         .required()
 });
 
-// Helper function to handle the validation result
 const validateRegistration = (data) => {
     return registerSchema.validate(data, { abortEarly: false });
 };
