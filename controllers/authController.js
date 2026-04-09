@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const bcrypt = require('bcrypt');
+const {hashPassword, comparePassword } = require('../middleware/hash')
 const {generateToken} = require('../middleware/jwt');
 const logger = require('../utils/logger');
 const { validateRegistration } = require('../utils/validation');
@@ -13,7 +13,7 @@ exports.registerUser = async (req, res) => {
 
     try {
         const full_name = `${first_name.trim().toUpperCase()} ${last_name.trim().toUpperCase()}`;
-        const hashedPassword = await bcrypt.hash(password);
+        const hashedPassword = await hashPassword(password);
 
         const query = `
             WITH attempt AS (
@@ -31,7 +31,6 @@ exports.registerUser = async (req, res) => {
         `;
 
         const { rows } = await db.query(query, [
-            userId,
             full_name.trim(),
             email.toLowerCase().trim(),
             hashedPassword,
@@ -76,6 +75,48 @@ function generatePayload(user){
         id: user.id,
         email: user.email,
         role: user.role,
+        country: user.country,
         currency: user.base_currency
     }
 }
+
+exports.loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
+        }
+
+        const userResult = await db.query(
+            'SELECT id, password_hash, role, country, base_currency FROM users WHERE email = $1',
+            [email.toLowerCase().trim()]
+        );
+
+        const user = userResult.rows[0];
+
+        const invalidMessage = "Invalid email or password";
+
+        if (!user) {
+            return res.status(401).json({ error: invalidMessage });
+        }
+
+        const isMatch = await comparePassword(password, user.password_hash);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: invalidMessage });
+        }
+
+        const token = generateToken(generatePayload(user))
+
+        res.status(200).json({
+            success: true,
+            message: "Login successful",
+            user: generatePayload(user),
+            token: token
+        });
+    } catch (err) {
+        console.error("Login Controller Error:", err.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

@@ -1,5 +1,11 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+
+require('dotenv').config({
+  path: process.env.NODE_ENV === 'test'
+    ? path.resolve(__dirname, '../.env.test')
+    : path.resolve(__dirname, '../.env')
+});
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -9,6 +15,7 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+// One single export object containing all methods
 module.exports = {
   async query(text, params) {
     const start = Date.now();
@@ -16,22 +23,27 @@ module.exports = {
       const res = await pool.query(text, params);
       const duration = Date.now() - start;
 
-      // Log query performance (helpful for debugging slow orders)
+      // This log is great for debugging slow queries!
       console.log('Executed query', { text, duration, rows: res.rowCount });
 
       return res;
     } catch (error) {
       console.error('Database Query Error:', {
         message: error.message,
-        stack: error.stack,
         query: text
       });
-      throw error; // Rethrow so the controller knows something went wrong
+      throw error;
     }
   },
-    
+
   async getClient() {
+    // Standard pool.connect() for transactions
     const client = await pool.connect();
     return client;
+  },
+
+  async end() {
+    console.log('Closing database pool...');
+    return await pool.end();
   }
 };
