@@ -61,7 +61,12 @@ exports.registerUser = async (req, res) => {
         });
 
     } catch (err) {
-        console.error(`[Registration Error]: ${err.message}`);
+        logger.error('Database error during user registration', {
+            error: err.message,
+            stack: err.stack,
+            context: { email, role }
+        });
+
         res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 };
@@ -70,6 +75,7 @@ function generatePayload(user){
     return {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        currency: user.base_currency
     }
 }

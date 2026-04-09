@@ -1,4 +1,10 @@
 const { createLogger, format, transports } = require('winston');
+const path = require('path');
+const fs = require('fs');
+
+// Get the name from the root package.json safely
+const rootPath = path.join(process.cwd(), 'package.json');
+const packageData = JSON.parse(fs.readFileSync(rootPath, 'utf8'));
 
 const logger = createLogger({
   level: 'info',
@@ -8,7 +14,10 @@ const logger = createLogger({
     format.splat(),
     format.json() // Production standard: JSON for easy parsing
   ),
-  defaultMeta: { service: 'user-service' },
+  defaultMeta: {
+    service: packageData.name,
+    env: process.env.NODE_ENV || 'development'
+  },
   transports: [
     // Write all logs with importance level of 'error' or less to 'error.log'
     new transports.File({ filename: 'logs/error.log', level: 'error' }),

@@ -1,13 +1,10 @@
 const rateLimit = require('express-rate-limit');
 
 const userLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 5, // Limit each user to 5 requests per minute
-
-    // Explicitly set the 429 status codes
+    windowMs: 60 * 1000,
+    max: 5,
     statusCode: 429,
 
-    // Customizing the response body
     message: {
         status: 429,
         error: 'Too Many Requests',
