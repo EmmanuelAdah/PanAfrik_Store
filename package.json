@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test jest --watchAll --detectOpenHandles --runInBand",
+    "test": "NODE_ENV=test jest --runInBand --detectOpenHandles",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
@@ -13,6 +13,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@prisma/config": "^7.7.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -33,5 +35,14 @@
     "supertest": "^7.2.2",
     "uuid": "^13.0.0",
     "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@prisma/client$": "<rootDir>/node_modules/@prisma/client",
+      "^@prisma/client/(.*)$": "<rootDir>/node_modules/@prisma/client/$1"
+    }
   }
 }

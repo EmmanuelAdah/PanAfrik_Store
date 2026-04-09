@@ -1,113 +1,81 @@
-const db = require('../config/db');
-const {hashPassword, comparePassword } = require('../middleware/hash')
-const {generateToken} = require('../middleware/jwt');
+const prisma = require('../config/prisma'); // Your new Prisma instance
+const { hashPassword, comparePassword } = require('../middleware/hash');
+const { generateToken } = require('../middleware/jwt');
 const logger = require('../utils/logger');
 const { validateRegistration } = require('../utils/validation');
 
 exports.registerUser = async (req, res) => {
-
     const { error } = validateRegistration(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     const { first_name, last_name, email, password, role, country, base_currency } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
 
     try {
         const full_name = `${first_name.trim().toUpperCase()} ${last_name.trim().toUpperCase()}`;
         const hashedPassword = await hashPassword(password);
 
-        const query = `
-            WITH attempt AS (
-                INSERT INTO users (full_name, email, password_hash, role, country, base_currency)
-                VALUES ($1, LOWER($2), $3, $4, $5, $6)
-                ON CONFLICT (email) DO NOTHING
-                RETURNING id, full_name, email, role, country, base_currency, FALSE as email_exists
-            )
-            SELECT * FROM attempt
-            UNION ALL
-            SELECT id, full_name, email, role, country, base_currency, TRUE as email_exists 
-            FROM users 
-            WHERE email = LOWER($2)
-            LIMIT 1;
-        `;
+        // 1. Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email: cleanEmail }
+        });
 
-        const { rows } = await db.query(query, [
-            full_name.trim(),
-            email.toLowerCase().trim(),
-            hashedPassword,
-            role,
-            country,
-            base_currency
-        ]);
-
-        const user = rows[0];
-
-        if (user.email_exists) {
-            logger.warn('Registration conflict: Email already exists', { email });
-
+        if (existingUser) {
+            logger.warn('Registration conflict: Email already exists', { email: cleanEmail });
             return res.status(409).json({
                 error: "Conflict",
                 message: "This email is already registered."
             });
         }
 
-        const token = generateToken(generatePayload(user));
+        // 2. Create the new user
+        const newUser = await prisma.user.create({
+            data: {
+                fullName: full_name, // Mapping to @map("full_name") in schema
+                email: cleanEmail,
+                passwordHash: hashedPassword,
+                role: role,
+                country: country,
+                baseCurrency: base_currency
+            }
+        });
+
+        const token = generateToken(generatePayload(newUser));
 
         res.status(201).json({
             success: true,
             message: "Registration successful",
-            user: generatePayload(user),
+            user: generatePayload(newUser),
             token: token
         });
 
     } catch (err) {
-        logger.error('Database error during user registration', {
-            error: err.message,
-            stack: err.stack,
-            context: { email, role }
-        });
-
-        res.status(500).json({ error: "Internal server error. Please try again later." });
+        logger.error('Registration error', { error: err.message, context: { cleanEmail, role } });
+        res.status(500).json({ error: "Internal server error." });
     }
 };
-
-function generatePayload(user){
-    return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        country: user.country,
-        currency: user.base_currency
-    }
-}
 
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
         if (!email || !password) {
             return res.status(400).json({ error: "Email and password are required" });
         }
 
-        const userResult = await db.query(
-            'SELECT id, password_hash, role, country, base_currency FROM users WHERE email = $1',
-            [email.toLowerCase().trim()]
-        );
+        const cleanEmail = email.toLowerCase().trim();
 
-        const user = userResult.rows[0];
+        // Use Prisma to find the user
+        const user = await prisma.user.findUnique({
+            where: { email: cleanEmail }
+        });
 
         const invalidMessage = "Invalid email or password";
 
-        if (!user) {
+        if (!user || !(await comparePassword(password, user.passwordHash))) {
             return res.status(401).json({ error: invalidMessage });
         }
 
-        const isMatch = await comparePassword(password, user.password_hash);
-
-        if (!isMatch) {
-            return res.status(401).json({ error: invalidMessage });
-        }
-
-        const token = generateToken(generatePayload(user))
+        const token = generateToken(generatePayload(user));
 
         res.status(200).json({
             success: true,
@@ -116,7 +84,18 @@ exports.loginUser = async (req, res) => {
             token: token
         });
     } catch (err) {
-        console.error("Login Controller Error:", err.message);
+        logger.error("Login Controller Error", { error: err.message });
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// Helper function updated to match Prisma's camelCase naming
+function generatePayload(user) {
+    return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        country: user.country,
+        currency: user.baseCurrency
+    };
+}
