@@ -43,11 +43,11 @@ describe('Auth System Integration Tests', () => {
     });
 
     // --- REGISTRATION SUITE ---
-    describe('POST /api/auth/register', () => {
+    describe('POST /auth/register', () => {
 
         test('✅ Should successfully register a new user', async () => {
             const res = await request(app)
-                .post('/api/auth/register')
+                .post('/auth/register')
                 .send(testUser);
 
             expect(res.statusCode).toBe(201);
@@ -66,7 +66,7 @@ describe('Auth System Integration Tests', () => {
 
         test('❌ Should return 409 for duplicate email registration', async () => {
             const res = await request(app)
-                .post('/api/auth/register')
+                .post('/auth/register')
                 .send(testUser);
 
             expect(res.statusCode).toBe(409);
@@ -76,7 +76,7 @@ describe('Auth System Integration Tests', () => {
         test('❌ Should return 400 if validation fails (missing first_name)', async () => {
             const { first_name, ...invalidUser } = testUser;
             const res = await request(app)
-                .post('/api/auth/register')
+                .post('/auth/register')
                 .send(invalidUser);
 
             expect(res.statusCode).toBe(400);
@@ -84,11 +84,11 @@ describe('Auth System Integration Tests', () => {
     });
 
     // --- LOGIN SUITE ---
-    describe('POST /api/auth/login', () => {
+    describe('POST /auth/login', () => {
 
         test('✅ Should login successfully with valid credentials', async () => {
             const res = await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send({
                     email: testUser.email,
                     password: testUser.password
@@ -102,7 +102,7 @@ describe('Auth System Integration Tests', () => {
 
         test('❌ Should fail with incorrect password', async () => {
             const res = await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send({
                     email: testUser.email,
                     password: 'wrongpassword'
@@ -114,7 +114,7 @@ describe('Auth System Integration Tests', () => {
 
         test('❌ Should return 400 if email is missing', async () => {
             const res = await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send({ password: testUser.password });
 
             expect(res.statusCode).toBe(400);

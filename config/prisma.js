@@ -1,5 +1,5 @@
 // config/prisma.js
-require('dotenv').config(); // Load variables from .env
+require('dotenv').config();
 const { PrismaClient } = require('../prisma/generated/client');
 
 if (!process.env.DATABASE_URL) {

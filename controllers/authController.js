@@ -3,6 +3,7 @@ const { hashPassword, comparePassword } = require('../middleware/hash');
 const { generateToken } = require('../middleware/jwt');
 const logger = require('../utils/logger');
 const { validateRegistration } = require('../utils/validation');
+const generatePayload = require('../middleware/generatePayload');
 
 exports.registerUser = async (req, res) => {
     const { error } = validateRegistration(req.body);
@@ -15,7 +16,6 @@ exports.registerUser = async (req, res) => {
         const full_name = `${first_name.trim().toUpperCase()} ${last_name.trim().toUpperCase()}`;
         const hashedPassword = await hashPassword(password);
 
-        // 1. Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email: cleanEmail }
         });
@@ -28,7 +28,6 @@ exports.registerUser = async (req, res) => {
             });
         }
 
-        // 2. Create the new user
         const newUser = await prisma.user.create({
             data: {
                 fullName: full_name, // Mapping to @map("full_name") in schema
@@ -88,14 +87,3 @@ exports.loginUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
-
-// Helper function updated to match Prisma's camelCase naming
-function generatePayload(user) {
-    return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        country: user.country,
-        currency: user.baseCurrency
-    };
-}
