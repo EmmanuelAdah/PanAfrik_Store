@@ -8,7 +8,6 @@ const redisClient = createClient({
     url: REDIS_URL,
     socket: {
         // Essential for Render: it handles restarts/deploys,
-        // so your app must reconnect automatically.
         reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
         connectTimeout: 10000
     }
