@@ -7,7 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Setup Multer to store file in memory temporarily
+// Setup Multer to store a file in memory temporarily
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,

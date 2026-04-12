@@ -1,6 +1,6 @@
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
-const generatePayload = require('../middleware/generatePayload');
+const generatePayload = require('../utils/generatePayload');
 
 exports.getUser = async (req, res) => {
     try {
@@ -54,8 +54,6 @@ exports.updateUser = async (req, res) => {
             where: { id },
             data: updateData
         });
-
-        console.log(updatedUser);
 
         res.status(200).json({
             message: "Profile updated",

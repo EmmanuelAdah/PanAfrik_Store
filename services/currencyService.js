@@ -1,5 +1,6 @@
+const logger = require('../utils/logger');
 
-const convertCurrency = async () => {
+const fetchExchangeRates = async () => {
     try {
         const response = await fetch(`https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/latest/USD`);
 
@@ -13,13 +14,13 @@ const convertCurrency = async () => {
 
         return { USD, NGN, GHS, ZAR, KES };
     } catch (error) {
-        console.error("Currency Conversion Error:", error.message);
+        logger.error("Currency Conversion Error:", error.message);
     }
 }
 
-const getCrossRates = async () => {
+const fetchGrossRates = async () => {
     try {
-        const rates = await convertCurrency();
+        const rates = await fetchExchangeRates();
 
         const currencies = ["NGN", "GHS", "ZAR", "USD", "KES"];
         const currencyMap = {};
@@ -40,7 +41,7 @@ const getCrossRates = async () => {
 
         // Construct the final object
         const finalOutput = {
-            ...currencyMap,
+            rates: {...currencyMap},
             fetched_at: new Date().toISOString(),
             stale: false
         };
@@ -50,12 +51,25 @@ const getCrossRates = async () => {
 
     } catch (error) {
         console.error("Mapping Error:", error);
+        return { message: "Failed to fetch currency rates" };
     }
 }
 
+const convertCurrency = async (amount, fromCurrency, toCurrency) => {
+    try {
+        const exchange = await fetchExchangeRates();
+
+        const rate = exchange.rates[fromCurrency][toCurrency]
+        return amount * rate;
+    } catch (error) {
+        console.error("Currency Conversion Error:", error.message);
+        return null;
+    }
+};
+
 module.exports = {
-    convertCurrency,
-    getCrossRates
+    fetchGrossRates,
+    convertCurrency
 }
 
-getCrossRates();
+fetchGrossRates();

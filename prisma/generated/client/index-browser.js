@@ -179,7 +179,8 @@ exports.Prisma.RateCacheScalarFieldEnum = {
   id: 'id',
   baseCurrency: 'baseCurrency',
   rates: 'rates',
-  fetchedAt: 'fetchedAt'
+  fetchedAt: 'fetchedAt',
+  isStale: 'isStale'
 };
 
 exports.Prisma.SortOrder = {

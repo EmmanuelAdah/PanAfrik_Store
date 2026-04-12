@@ -2,8 +2,8 @@ const prisma = require('../config/prisma'); // Your new Prisma instance
 const { hashPassword, comparePassword } = require('../middleware/hash');
 const { generateToken } = require('../middleware/jwt');
 const logger = require('../utils/logger');
-const { validateRegistration } = require('../utils/validation');
-const generatePayload = require('../middleware/generatePayload');
+const { validateRegistration } = require('../utils/validator');
+const generatePayload = require('../utils/generatePayload');
 
 exports.registerUser = async (req, res) => {
     const { error } = validateRegistration(req.body);

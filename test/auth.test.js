@@ -17,13 +17,29 @@ describe('Auth System Integration Tests', () => {
         base_currency: 'NGN'
     };
 
+    const invalidUser = {
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'test_user@pana-frik.com',
+        password: 'SecurePassword123!',
+        role: 'admin',
+        country: 'NG',
+        base_currency: 'NGN'
+    };
+
     const cleanEmail = testUser.email.toLowerCase().trim();
+    const invalidUserEmail = invalidUser.email.toLowerCase().trim();
+
 
     beforeAll(async () => {
         try {
             // Check connection by attempting to delete (even if 0 rows)
             await prisma.user.deleteMany({
                 where: { email: cleanEmail }
+            });
+
+            await prisma.user.deleteMany({
+                where: { email: invalidUserEmail }
             });
         } catch (error) {
             console.error('❌ Database Connection Error during beforeAll:', error.message);
@@ -62,6 +78,14 @@ describe('Auth System Integration Tests', () => {
                 currency: testUser.base_currency,
                 role: testUser.role
             });
+        });
+
+        test('✅ Register new user with role-admin_return 400 Bad request', async () => {
+            const res = await request(app)
+                .post('/auth/register')
+                .send(invalidUser);
+
+            expect(res.statusCode).toBe(400);
         });
 
         test('❌ Should return 409 for duplicate email registration', async () => {
