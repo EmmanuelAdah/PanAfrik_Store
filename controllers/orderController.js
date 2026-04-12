@@ -1,5 +1,6 @@
 const logger = require('../utils/logger');
+const { getCrossRates } = require('../services/currencyService');
 
-const rates = await fetch(`https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/latest/USD`);
+const rates = await getCrossRates();
 
 logger.info(rates);

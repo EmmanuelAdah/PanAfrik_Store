@@ -1,7 +1,8 @@
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
-
+const { validateProduct } = require('../utils/validator');
 const { convertCurrency } = require('../services/currencyService');
+const uploadImage = require('../services/uploadImage');
 
 // GET /products - List active products with filters and conversion
 exports.getAllProducts = async (req, res) => {
@@ -76,34 +77,65 @@ exports.getProductById = async (req, res) => {
 
 // POST /products - Merchant only
 exports.createProduct = async (req, res) => {
+    const { error } = validateProduct({
+        ...req.body,
+        image: req.file // Multer attaches the file here
+    });
+
+    if (error) {
+        return res.status(400).json({
+            success: false,
+            error: error.details[0].message
+        });
+    }
+
     try {
-        const { name, description, price, category, imageUrl } = req.body;
+        const { name, description, price, category } = req.body;
         const merchantId = req.user.id;
 
-        // Validation
-        if (!name || !price) {
-            return res.status(400).json({ error: "Name and Price are required." });
+        let uploadedImageUrl = await uploadImage(req.file);
+
+        if (!uploadedImageUrl) {
+            return res.status(500).json({
+                error: 'Failed to upload image'
+            });
         }
 
-        // Fetch merchant to get their base currency
-        const merchant = await prisma.user.findUnique({ where: { id: merchantId } });
+        // Get merchant's base currency
+        const merchant = await prisma.user.findUnique({
+            where: { id: merchantId },
+            select: { baseCurrency: true }
+        });
 
+        if (!merchant) {
+            logger.error('Illegal product creation attempt by ID: ' + merchantId);
+            return res.send(404).json({
+                error: 'Invalid merchant ID: ' + merchantId,
+            });
+        }
+
+        // Create Product in Database
         const product = await prisma.product.create({
             data: {
                 name,
                 description,
-                price,
+                price: parseFloat(price), // Important: Convert string from form-data to Decimal
                 category,
-                imageUrl,
+                imageUrl: uploadedImageUrl,
                 merchantId,
-                currency: merchant.baseCurrency // Set from merchant's profile
+                currency: merchant.baseCurrency
             }
         });
 
-        res.status(201).json({ success: true, message: "Product created", data: product });
+        res.status(201).json({
+            success: true,
+            message: "Product created successfully",
+            data: product
+        });
+
     } catch (err) {
         logger.error("CreateProduct Error", { error: err.message });
-        res.status(500).json({ error: "Failed to create product." });
+        res.status(500).json({ error: "Internal server error." });
     }
 };
 

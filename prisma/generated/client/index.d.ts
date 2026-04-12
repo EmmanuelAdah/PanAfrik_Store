@@ -7316,12 +7316,14 @@ export namespace Prisma {
     id: string | null
     baseCurrency: string | null
     fetchedAt: Date | null
+    isStale: boolean | null
   }
 
   export type RateCacheMaxAggregateOutputType = {
     id: string | null
     baseCurrency: string | null
     fetchedAt: Date | null
+    isStale: boolean | null
   }
 
   export type RateCacheCountAggregateOutputType = {
@@ -7329,6 +7331,7 @@ export namespace Prisma {
     baseCurrency: number
     rates: number
     fetchedAt: number
+    isStale: number
     _all: number
   }
 
@@ -7337,12 +7340,14 @@ export namespace Prisma {
     id?: true
     baseCurrency?: true
     fetchedAt?: true
+    isStale?: true
   }
 
   export type RateCacheMaxAggregateInputType = {
     id?: true
     baseCurrency?: true
     fetchedAt?: true
+    isStale?: true
   }
 
   export type RateCacheCountAggregateInputType = {
@@ -7350,6 +7355,7 @@ export namespace Prisma {
     baseCurrency?: true
     rates?: true
     fetchedAt?: true
+    isStale?: true
     _all?: true
   }
 
@@ -7430,6 +7436,7 @@ export namespace Prisma {
     baseCurrency: string
     rates: JsonValue
     fetchedAt: Date
+    isStale: boolean
     _count: RateCacheCountAggregateOutputType | null
     _min: RateCacheMinAggregateOutputType | null
     _max: RateCacheMaxAggregateOutputType | null
@@ -7454,6 +7461,7 @@ export namespace Prisma {
     baseCurrency?: boolean
     rates?: boolean
     fetchedAt?: boolean
+    isStale?: boolean
   }, ExtArgs["result"]["rateCache"]>
 
   export type RateCacheSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7461,6 +7469,7 @@ export namespace Prisma {
     baseCurrency?: boolean
     rates?: boolean
     fetchedAt?: boolean
+    isStale?: boolean
   }, ExtArgs["result"]["rateCache"]>
 
   export type RateCacheSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7468,6 +7477,7 @@ export namespace Prisma {
     baseCurrency?: boolean
     rates?: boolean
     fetchedAt?: boolean
+    isStale?: boolean
   }, ExtArgs["result"]["rateCache"]>
 
   export type RateCacheSelectScalar = {
@@ -7475,9 +7485,10 @@ export namespace Prisma {
     baseCurrency?: boolean
     rates?: boolean
     fetchedAt?: boolean
+    isStale?: boolean
   }
 
-  export type RateCacheOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "baseCurrency" | "rates" | "fetchedAt", ExtArgs["result"]["rateCache"]>
+  export type RateCacheOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "baseCurrency" | "rates" | "fetchedAt" | "isStale", ExtArgs["result"]["rateCache"]>
 
   export type $RateCachePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "RateCache"
@@ -7487,6 +7498,7 @@ export namespace Prisma {
       baseCurrency: string
       rates: Prisma.JsonValue
       fetchedAt: Date
+      isStale: boolean
     }, ExtArgs["result"]["rateCache"]>
     composites: {}
   }
@@ -7914,6 +7926,7 @@ export namespace Prisma {
     readonly baseCurrency: FieldRef<"RateCache", 'String'>
     readonly rates: FieldRef<"RateCache", 'Json'>
     readonly fetchedAt: FieldRef<"RateCache", 'DateTime'>
+    readonly isStale: FieldRef<"RateCache", 'Boolean'>
   }
     
 
@@ -8367,7 +8380,8 @@ export namespace Prisma {
     id: 'id',
     baseCurrency: 'baseCurrency',
     rates: 'rates',
-    fetchedAt: 'fetchedAt'
+    fetchedAt: 'fetchedAt',
+    isStale: 'isStale'
   };
 
   export type RateCacheScalarFieldEnum = (typeof RateCacheScalarFieldEnum)[keyof typeof RateCacheScalarFieldEnum]
@@ -8929,6 +8943,7 @@ export namespace Prisma {
     baseCurrency?: StringFilter<"RateCache"> | string
     rates?: JsonFilter<"RateCache">
     fetchedAt?: DateTimeFilter<"RateCache"> | Date | string
+    isStale?: BoolFilter<"RateCache"> | boolean
   }
 
   export type RateCacheOrderByWithRelationInput = {
@@ -8936,6 +8951,7 @@ export namespace Prisma {
     baseCurrency?: SortOrder
     rates?: SortOrder
     fetchedAt?: SortOrder
+    isStale?: SortOrder
   }
 
   export type RateCacheWhereUniqueInput = Prisma.AtLeast<{
@@ -8946,6 +8962,7 @@ export namespace Prisma {
     baseCurrency?: StringFilter<"RateCache"> | string
     rates?: JsonFilter<"RateCache">
     fetchedAt?: DateTimeFilter<"RateCache"> | Date | string
+    isStale?: BoolFilter<"RateCache"> | boolean
   }, "id">
 
   export type RateCacheOrderByWithAggregationInput = {
@@ -8953,6 +8970,7 @@ export namespace Prisma {
     baseCurrency?: SortOrder
     rates?: SortOrder
     fetchedAt?: SortOrder
+    isStale?: SortOrder
     _count?: RateCacheCountOrderByAggregateInput
     _max?: RateCacheMaxOrderByAggregateInput
     _min?: RateCacheMinOrderByAggregateInput
@@ -8966,6 +8984,7 @@ export namespace Prisma {
     baseCurrency?: StringWithAggregatesFilter<"RateCache"> | string
     rates?: JsonWithAggregatesFilter<"RateCache">
     fetchedAt?: DateTimeWithAggregatesFilter<"RateCache"> | Date | string
+    isStale?: BoolWithAggregatesFilter<"RateCache"> | boolean
   }
 
   export type UserCreateInput = {
@@ -9372,6 +9391,7 @@ export namespace Prisma {
     baseCurrency: string
     rates: JsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    isStale?: boolean
   }
 
   export type RateCacheUncheckedCreateInput = {
@@ -9379,6 +9399,7 @@ export namespace Prisma {
     baseCurrency: string
     rates: JsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    isStale?: boolean
   }
 
   export type RateCacheUpdateInput = {
@@ -9386,6 +9407,7 @@ export namespace Prisma {
     baseCurrency?: StringFieldUpdateOperationsInput | string
     rates?: JsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isStale?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type RateCacheUncheckedUpdateInput = {
@@ -9393,6 +9415,7 @@ export namespace Prisma {
     baseCurrency?: StringFieldUpdateOperationsInput | string
     rates?: JsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isStale?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type RateCacheCreateManyInput = {
@@ -9400,6 +9423,7 @@ export namespace Prisma {
     baseCurrency: string
     rates: JsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    isStale?: boolean
   }
 
   export type RateCacheUpdateManyMutationInput = {
@@ -9407,6 +9431,7 @@ export namespace Prisma {
     baseCurrency?: StringFieldUpdateOperationsInput | string
     rates?: JsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isStale?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type RateCacheUncheckedUpdateManyInput = {
@@ -9414,6 +9439,7 @@ export namespace Prisma {
     baseCurrency?: StringFieldUpdateOperationsInput | string
     rates?: JsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isStale?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type UuidFilter<$PrismaModel = never> = {
@@ -9928,18 +9954,21 @@ export namespace Prisma {
     baseCurrency?: SortOrder
     rates?: SortOrder
     fetchedAt?: SortOrder
+    isStale?: SortOrder
   }
 
   export type RateCacheMaxOrderByAggregateInput = {
     id?: SortOrder
     baseCurrency?: SortOrder
     fetchedAt?: SortOrder
+    isStale?: SortOrder
   }
 
   export type RateCacheMinOrderByAggregateInput = {
     id?: SortOrder
     baseCurrency?: SortOrder
     fetchedAt?: SortOrder
+    isStale?: SortOrder
   }
   export type JsonWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<

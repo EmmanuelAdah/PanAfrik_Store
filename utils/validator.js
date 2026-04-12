@@ -38,6 +38,9 @@ const registerSchema = Joi.object({
 
     role: Joi.string()
         .valid('merchant', 'customer')
+        .messages({
+            'message': 'Invalid role'
+        })
         .required(),
 
     country: Joi.string()
@@ -55,6 +58,53 @@ const validateRegistration = (data) => {
     return registerSchema.validate(data, { abortEarly: false });
 };
 
+const productSchema = (data) => {
+    const schema = Joi.object({
+        name: Joi.string()
+            .min(3)
+            .max(255)
+            .required()
+            .trim(),
+
+        description: Joi.string()
+            .max(1000)
+            .required()
+            .trim(),
+
+        price: Joi.number()
+            .positive()
+            .precision(2)
+            .required(),
+
+        category: Joi.string()
+            .max(100)
+            .required()
+            .trim(),
+
+        // Validate file metadata if you pass req.file to this function
+        image: Joi.object({
+            fieldname: Joi.string(),
+            originalname: Joi.string(),
+            encoding: Joi.string(),
+            mimetype: Joi.string().valid('image/jpeg', 'image/jpg', 'image/png', 'image/webp').required(),
+            size: Joi.number().max(5 * 1024 * 1024).required(), // 5MB
+            buffer: Joi.any()
+        }).required()
+            .messages({
+                'any.required': 'Product image is required.',
+                'number.max': 'Image size must be less than 5MB.',
+                'any.only': 'Only JPEG, PNG, and WebP images are allowed.'
+            })
+    });
+
+    return schema.validate(data);
+};
+
+const validateProduct = (data) => {
+    return productSchema.validate(data, { abortEarly: false });
+};
+
 module.exports = {
-    validateRegistration
+    validateRegistration,
+    validateProduct
 };

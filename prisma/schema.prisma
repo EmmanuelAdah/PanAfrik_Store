@@ -6,11 +6,13 @@
 generator client {
   provider = "prisma-client-js"
   output   = "./generated/client"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp")]
 }
 
 
@@ -128,6 +130,7 @@ model RateCache {
   baseCurrency String   @map("base_currency") @db.Char(3)
   rates        Json
   fetchedAt    DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+  isStale      Boolean  @default(false) @map("is_stale")
 
   @@index([baseCurrency, fetchedAt(sort: Desc)])
   @@map("rate_cache")

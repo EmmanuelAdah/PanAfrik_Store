@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for PanAfrik_Store/routes/userRouter.js</title>
+    <title>Code coverage report for PanAfrik_Store/routes/productRouter.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">PanAfrik_Store/routes</a> userRouter.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">PanAfrik_Store/routes</a> productRouter.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -74,27 +74,33 @@
 <a name='L9'></a><a href='#L9'>9</a>
 <a name='L10'></a><a href='#L10'>10</a>
 <a name='L11'></a><a href='#L11'>11</a>
-<a name='L12'></a><a href='#L12'>12</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span></td><td class="text"><pre class="prettyprint lang-js">const express = require('express');
 const router = express.Router();
+const productController = require('../controllers/productController');
 const { authenticateToken } = require('../middleware/jwt');
 const authorizeRoles = require('../middleware/roleCheck');
-const userController = require('../controllers/userController');
+const { upload } = require('../config/cloudinaryConfig');
 &nbsp;
 &nbsp;
-router.get('/:id', authenticateToken, authorizeRoles('customer', 'merchant'), userController.getUser);
-router.put('/update/:id', authenticateToken, authorizeRoles('customer', 'merchant'), userController.updateUser);
-router.delete('/delete/:id', authenticateToken, authorizeRoles('customer', 'merchant'), userController.deleteUser);
+router.get('/', productController.getAllProducts);
+router.post('/', authenticateToken, authorizeRoles('merchant'), upload.single('image'), productController.createProduct);
+router.put('/:id', authenticateToken, authorizeRoles('merchant'), upload.single('image'), productController.updateProduct);
+router.delete('/:id', authenticateToken, authorizeRoles('merchant'), productController.deleteProduct);
 &nbsp;
 module.exports = router;</pre></td></tr></table></pre>
 
