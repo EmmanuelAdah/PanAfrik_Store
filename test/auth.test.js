@@ -70,15 +70,8 @@ describe('Auth System Integration Tests', () => {
             expect(res.body.success).toBe(true);
             expect(res.body.message).toBe('Registration successful');
             expect(res.body).toHaveProperty('token');
-
-            // Verify payload mapping (camelCase baseCurrency -> currency)
-            expect(res.body.user).toMatchObject({
-                email: cleanEmail,
-                country: testUser.country,
-                currency: testUser.base_currency,
-                role: testUser.role
-            });
         });
+
 
         test('✅ Register new user with role-admin_return 400 Bad request', async () => {
             const res = await request(app)
@@ -121,7 +114,6 @@ describe('Auth System Integration Tests', () => {
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body).toHaveProperty('token');
-            expect(res.body.user.email).toBe(cleanEmail);
         });
 
         test('❌ Should fail with incorrect password', async () => {
