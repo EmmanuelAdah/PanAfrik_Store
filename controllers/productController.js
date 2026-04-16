@@ -10,7 +10,6 @@ exports.getAllProducts = async (req, res) => {
         const { currency, search, category, country } = req.query;
 
         // Build Filters
-        const where = { isActive: true };
         if (search) where.name = { contains: search, mode: 'insensitive' };
         if (category) where.category = category;
         if (country) {
@@ -18,7 +17,7 @@ exports.getAllProducts = async (req, res) => {
         }
 
         const products = await prisma.product.findMany({
-            where,
+            isActive: true,
             include: { merchant: { select: { country: true } } }
         });
 

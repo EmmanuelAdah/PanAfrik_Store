@@ -2,9 +2,10 @@ const prisma = require('../config/prisma');
 const redisClient = require('../config/redisConfig');
 const logger = require('../utils/logger');
 const { fetchGrossRates } = require('./currencyService');
+const cron = require('node-cron');
 
-exports.syncExchangeRates = async () => {
-    let ratesData = null;
+const syncExchangeRates = async () => {
+    let ratesData;
     let isStale = false;
     const fetchTime = new Date();
 
@@ -52,3 +53,24 @@ exports.syncExchangeRates = async () => {
         logger.error('❌ Persistence Failure (Postgres/Redis)', err);
     }
 };
+
+// Schedule the task to run every 30 minutes
+const initRateCron = async () => {
+
+    // Syntax: (minute) (hour) (day of month) (month) (day of week)
+    cron.schedule('*/30 * * * *', async () => {
+        logger.info('Timer Triggered: Starting Exchange Rate Sync...');
+        try {
+            await syncExchangeRates();
+        } catch (error) {
+            logger.error('CRON Job Failed:', error);
+        }
+    });
+    logger.info('Cron Scheduler initialized: Running every 30 minutes.');
+}
+
+module.exports = {
+    syncExchangeRates,
+    initRateCron
+};
+

@@ -7,7 +7,7 @@ const REDIS_URL = process.env.REDIS_URL;
 const redisClient = createClient({
     url: REDIS_URL,
     socket: {
-        // Essential for Render: it handles restarts/deploys,
+        // Essential for Render: it handles restarts/deploys
         reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
         connectTimeout: 10000
     }
