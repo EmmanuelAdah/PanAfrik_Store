@@ -30,7 +30,7 @@ exports.registerUser = async (req, res) => {
 
         const newUser = await prisma.user.create({
             data: {
-                fullName: full_name, // Mapping to @map("full_name") in schema
+                fullName: full_name,
                 email: cleanEmail,
                 passwordHash: hashedPassword,
                 role: role,
@@ -44,7 +44,6 @@ exports.registerUser = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "Registration successful",
-            user: generatePayload(newUser),
             token: token
         });
 
@@ -79,7 +78,6 @@ exports.loginUser = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Login successful",
-            user: generatePayload(user),
             token: token
         });
     } catch (err) {
