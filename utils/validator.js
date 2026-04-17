@@ -53,10 +53,26 @@ const registerSchema = Joi.object({
 
 // PRODUCT SCHEMA
 const productSchema = Joi.object({
-    name: Joi.string().min(3).max(255).required().trim(),
-    description: Joi.string().max(1000).required().trim(),
-    price: Joi.number().positive().precision(2).required(),
-    category: Joi.string().max(100).required().trim(),
+    name: Joi.string()
+        .min(3)
+        .max(255)
+        .required()
+        .trim(),
+
+    description: Joi.string()
+        .max(1000)
+        .required()
+        .trim(),
+
+    price: Joi.number()
+        .positive()
+        .precision(2)
+        .required(),
+
+    category: Joi.string()
+        .max(100)
+        .required()
+        .trim(),
 
     // Multer File Validation
     image: Joi.object({
@@ -77,18 +93,24 @@ const productSchema = Joi.object({
 
 
 const cartItemSchema = Joi.object({
-    productId: uuidSchema.required().messages({
-        'string.guid': 'Product ID must be a valid UUID.',
-        'any.required': 'Product ID is required.'
+    productId: uuidSchema
+        .required()
+        .messages({
+            'string.guid': 'Product ID must be a valid UUID.',
+            'any.required': 'Product ID is required.'
     }),
 
-    quantity: Joi.number().integer().min(1).max(1000).required().messages({
-        'number.base': 'Quantity must be a number.',
-        'number.min': 'Quantity must be at least 1.',
-        'any.required': 'Quantity is required.'
+    quantity: Joi.number()
+        .integer()
+        .min(1)
+        .max(1000)
+        .required()
+        .messages({
+            'number.base': 'Quantity must be a number.',
+            'number.min': 'Quantity must be at least 1.',
+            'any.required': 'Quantity is required.'
     })
 });
-
 
 const validate = (schema, data) => {
     return schema.validate(data, { abortEarly: false, stripUnknown: true });
