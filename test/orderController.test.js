@@ -64,7 +64,9 @@ describe('📦 Order System Integration Tests', () => {
             prisma.order.create.mockResolvedValue({ id: 'ord-1' });
             prisma.order.update.mockResolvedValue({ id: 'ord-1', customerTotal: 134328.34, status: 'completed' });
 
-            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+            const res = await request(app)
+                .post('/checkout')
+                .send({ customerCurrency: 'NGN' });
 
             expect(res.status).toBe(201);
             // (50 USD * 1343.2834 NGN/USD) * 2 qty = 134328.34
@@ -86,7 +88,9 @@ describe('📦 Order System Integration Tests', () => {
             // Simulate a crash during the update
             prisma.order.update.mockRejectedValue(new Error("Update Failed"));
 
-            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+            const res = await request(app)
+                .post('/checkout')
+                .send({ customerCurrency: 'NGN' });
 
             expect(res.status).toBe(500);
             // Cart deletion happens at the END of the transaction. If the update fails, this shouldn't run.
@@ -98,10 +102,15 @@ describe('📦 Order System Integration Tests', () => {
         test('⚠️ should return 429 after 5 rapid requests', async () => {
             // Fill the quota
             for (let i = 0; i < 5; i++) {
-                await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+                await request(app)
+                    .post('/checkout')
+                    .send({ customerCurrency: 'NGN' });
             }
             // The 6th request
-            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+            const res = await request(app)
+                .post('/checkout')
+                .send({ customerCurrency: 'NGN' });
+
             expect(res.status).toBe(429);
             expect(res.body.message).toBe("Rate limit exceeded");
         });
