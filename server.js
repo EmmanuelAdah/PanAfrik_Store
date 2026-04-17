@@ -20,6 +20,9 @@ app.use(helmet());
 app.use('/auth', require('./routes/authRouter'));
 app.use('/users', require('./routes/userRouter'));
 app.use('/products', require('./routes/productRouter'));
+app.use('/rates', require('./routes/rateRouter'));
+app.use('/cart', require('./routes/cartRouter'));
+app.use('/', require('./routes/orderRouter'));
 
 app.all(/.*/, (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
