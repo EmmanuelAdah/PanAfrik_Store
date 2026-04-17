@@ -83,10 +83,11 @@ describe('🚀 Comprehensive API Endpoint: GET /rates', () => {
             redisClient.get.mockResolvedValue(null);
             prisma.rateCache.findFirst.mockResolvedValue(null);
 
-            const res = await request(app).get('/rates');
+            const res = await request(app)
+                .get('/rates');
 
             expect(res.status).toBe(503);
-            expect(res.body.message).toContain('unavailable');
+            expect(res.body.message).toContain('Service temporarily unavailable.');
         });
     });
 
@@ -98,7 +99,8 @@ describe('🚀 Comprehensive API Endpoint: GET /rates', () => {
                 stale: false
             }));
 
-            const res = await request(app).get('/rates');
+            const res = await request(app)
+                .get('/rates');
 
             // Check that decimals aren't rounded or truncated
             expect(res.body.rates.NGN.USD).toBe(0.000741234);
