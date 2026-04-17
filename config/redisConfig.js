@@ -1,27 +1,38 @@
 const { createClient } = require('redis');
 const logger = require('../utils/logger');
 
-// Render provides a 'REDIS_URL' environment variable by default
 const REDIS_URL = process.env.REDIS_URL;
 
 const redisClient = createClient({
     url: REDIS_URL,
     socket: {
-        // Essential for Render: it handles restarts/deploys
-        reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
+        // This handles reconnections AFTER the initial connection is established
+        reconnectStrategy: (retries) => {
+            const delay = Math.min(retries * 100, 3000);
+            logger.info(`Redis: Reconnecting in ${delay}ms... (Attempt ${retries})`);
+            return delay;
+        },
         connectTimeout: 10000
     }
 });
 
-redisClient.on('error', (err) => logger.error('Render Redis Error:', err));
-redisClient.on('connect', () => logger.info('🚀 Connected to Render Redis'));
+redisClient.on('error', (err) => logger.error('❌ Redis Error:', err));
+redisClient.on('connect', () => logger.info('🚀 Connected to Redis'));
+redisClient.on('reconnecting', () => logger.warn('🔄 Redis: Attempting to reconnect...'));
 
-(async () => {
+// The logic to handle the "Cold Start" connection
+const connectWithRetry = async () => {
     try {
-        if (!redisClient.isOpen) await redisClient.connect();
+        if (!redisClient.isOpen) {
+            await redisClient.connect();
+        }
     } catch (err) {
-        logger.error('Failed to connect to Render Redis', err);
+        logger.error('🔥 Initial Redis connection failed. Retrying in 5s...', err);
+        // If the initial connection fails, we manually retry after 5 seconds
+        setTimeout(connectWithRetry, 5000);
     }
-})();
+};
+
+connectWithRetry();
 
 module.exports = redisClient;

@@ -1,20 +1,21 @@
 services:
   - type: web
     name: pan-afrik-store
-    env: docker
-    plan: free # -- using free plan
-    region: frankfurt # or your preferred region
+    runtime: node # Explicitly set your runtime
+    plan: starter # Changed to starter for private network support
+    region: frankfurt
     envVars:
       - key: REDIS_URL
-        fromRedis:
+        fromService:
+          type: keyvalue # Use 'keyvalue' for Redis
           name: panafrik-redis
           property: connectionString
       - key: JWT_SECRET
-        sync: false # Set this in the dashboard for security
+        sync: false
       - key: EXCHANGE_RATE_API_KEY
         sync: false
 
-  - type: redis
+  - type: keyvalue # Modern name for Redis
     name: panafrik-redis
     plan: free
-    ipAllowList: [] # This makes it private to your services only
+    ipAllowList: [] # Stays private
