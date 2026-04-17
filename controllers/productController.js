@@ -17,8 +17,14 @@ exports.getAllProducts = async (req, res) => {
         }
 
         const products = await prisma.product.findMany({
-            isActive: true,
-            include: { merchant: { select: { country: true } } }
+            where: {
+                isActive: true // Wrap your filter inside 'where'
+            },
+            include: {
+                merchant: {
+                    select: { country: true }
+                }
+            }
         });
 
         // Apply Currency Conversion if requested
