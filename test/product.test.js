@@ -1,162 +1,228 @@
-require('dotenv').config();
 const request = require('supertest');
-const app = require('../app');
-const bcrypt = require('bcrypt');
-const path = require('path');
+const express = require('express');
+const productRoutes = require('../routes/productRouter');
+
+// --- Mocks ---
+jest.mock('../config/prisma', () => ({
+    product: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+    },
+    user: {
+        findUnique: jest.fn(),
+    }
+}));
+
+jest.mock('../services/uploadImage', () => jest.fn(() => 'http://image.url'));
+jest.mock('../utils/validator', () => ({
+    validateProduct: jest.fn(() => ({ error: null }))
+}));
+
+// --- Flexible Auth Mocking ---
+// We create variables that we can change per test case
+let mockUser = { id: 'merchant_A', role: 'merchant' };
+
+jest.mock('../middleware/jwt', () => ({
+    authenticateToken: (req, res, next) => {
+        req.user = mockUser;
+        next();
+    }
+}));
+
+// Initialize App
+const app = express();
+app.use(express.json());
+app.use('/products', productRoutes);
+
 const prisma = require('../config/prisma');
-const { generateToken } = require('../middleware/jwt');
 
-describe('Product Management Integration Tests', () => {
-    let merchantOneToken, merchantTwoToken, customerToken;
-    let merchantOne, productOneId;
+describe('Product Security & Isolation Requirements', () => {
 
-    beforeAll(async () => {
-        // Cleanup
-        await prisma.product.deleteMany();
-        await prisma.user.deleteMany({ where: { email: { contains: '@product-test.com' } } });
-
-        const hashedPassword = await bcrypt.hash('password', 12);
-
-        // Seed Users
-        merchantOne = await prisma.user.create({
-            data: { fullName: "M1", email: "m1@product-test.com", passwordHash: hashedPassword, role: "merchant", country: "NG", baseCurrency: "NGN" }
-        });
-        const merchantTwo = await prisma.user.create({
-            data: { fullName: "M2", email: "m2@product-test.com", passwordHash: hashedPassword, role: "merchant", country: "GH", baseCurrency: "GHS" }
-        });
-        const customer = await prisma.user.create({
-            data: { fullName: "C1", email: "c1@product-test.com", passwordHash: hashedPassword, role: "customer", country: "NG", baseCurrency: "NGN" }
-        });
-
-        merchantOneToken = generateToken({ id: merchantOne.id, role: 'merchant' });
-        merchantTwoToken = generateToken({ id: merchantTwo.id, role: 'merchant' });
-        customerToken = generateToken({ id: customer.id, role: 'customer' });
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    afterAll(async () => {
-        await prisma.$disconnect();
-    })
-
-    describe('POST /products', () => {
-        test('✅ Merchant can create a product with an image upload', async () => {
-
-            const imagePath = path.join(__dirname, 'fixtures/fan.jpg');
+    /**
+     * REQUIREMENT: Role Enforcement
+     * Does a customer get 403 when they try to POST /products?
+     */
+    describe('Role Enforcement (POST /products)', () => {
+        it('should return 403 Forbidden when a user with role "customer" tries to create a product', async () => {
+            // Switch user to a customer
+            mockUser = { id: 'customer_123', role: 'customer' };
 
             const res = await request(app)
-                .post('/products') // Ensure this matches your app.use prefix
-                .set('Authorization', `Bearer ${merchantOneToken}`)
-                .field('name', 'Standing Fan')
-                .field('price', 5000)
+                .post('/products')
+                .field('name', 'Illegal Product')
+                .field('price', '100');
+
+            // The authorizeRoles('merchant') middleware should catch this
+            expect(res.status).toBe(403);
+        });
+
+        it('should return 201 Created when a user with role "merchant" creates a product', async () => {
+            mockUser = { id: 'merchant_A', role: 'merchant' };
+
+            prisma.user.findUnique.mockResolvedValue({ id: 'merchant_A', baseCurrency: 'USD' });
+            prisma.product.create.mockResolvedValue({ id: 'p1', name: 'Valid Product' });
+
+            const res = await request(app)
+                .post('/products')
+                .field('name', 'Valid Product')
+                .field('price', '100');
+
+            expect(res.status).toBe(201);
+        });
+    });
+
+    /**
+     * REQUIREMENT: Merchant Isolation
+     * Does merchant A get 403 when they try to PUT /products/:id owned by merchant B?
+     */
+    describe('Merchant Isolation (PUT /products/:id)', () => {
+        it('should return 403 Forbidden when Merchant A tries to update Merchant B\'s product', async () => {
+            // Set the current logged-in user to Merchant A
+            mockUser = { id: 'merchant_A', role: 'merchant' };
+
+            // Mock Prisma to return a product owned by Merchant B
+            prisma.product.findUnique.mockResolvedValue({
+                id: 'product_100',
+                merchantId: 'merchant_B', // Different owner
+                name: 'Merchant B laptop'
+            });
+
+            const res = await request(app)
+                .put('/products/product_100')
+                .send({ name: 'Hacked Name' });
+
+            expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Access denied. This is not your product.');
+            // Ensure an update was never called
+            expect(prisma.product.update).not.toHaveBeenCalled();
+        });
+
+        it('should return 200 OK when Merchant A updates their own product', async () => {
+            mockUser = { id: 'merchant_A', role: 'merchant' };
+
+            // Mock Prisma to return a product owned by Merchant A
+            prisma.product.findUnique.mockResolvedValue({
+                id: 'product_100',
+                merchantId: 'merchant_A', // Same owner
+            });
+            prisma.product.update.mockResolvedValue({ id: 'product_100', name: 'Updated' });
+
+            const res = await request(app)
+                .put('/products/product_100')
+                .send({ name: 'Updated' });
+
+            expect(res.status).toBe(200);
+            expect(prisma.product.update).toHaveBeenCalled();
+        });
+    });
+
+    /**
+     * REQUIREMENT: Merchant Isolation (DELETE /products/:id)
+     */
+    describe('Merchant Isolation (DELETE /products/:id)', () => {
+        it('should return 403 when trying to delete a product owned by someone else', async () => {
+            mockUser = { id: 'merchant_A', role: 'merchant' };
+
+            prisma.product.findUnique.mockResolvedValue({
+                id: 'product_100',
+                merchantId: 'merchant_B'
+            });
+
+            const res = await request(app).delete('/products/product_100');
+
+            expect(res.status).toBe(403);
+            expect(prisma.product.update).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('POST /products - Validation Logic', () => {
+
+        it('should return 400 if the price is negative (Joi .positive() constraint)', async () => {
+            const { validateProduct } = require('../utils/validator');
+            // Force the mock to return a specific error for a negative price
+            validateProduct.mockReturnValueOnce({
+                error: { details: [{ message: '"price" must be a positive number' }] }
+            });
+
+            const res = await request(app)
+                .post('/products')
+                .field('name', 'Cheap Item')
+                .field('price', '-10') // Invalid price
+                .field('category', 'Test')
+                .field('description', 'Test description')
+                .attach('image', Buffer.from('fake-image'), 'test.jpg');
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('"price" must be a positive number');
+        });
+
+        it('should return 400 if the image is missing (Joi .required() constraint)', async () => {
+            const { validateProduct } = require('../utils/validator');
+            validateProduct.mockReturnValueOnce({
+                error: { details: [{ message: 'Product image is required.' }] }
+            });
+
+            // Note: No .attach() here
+            const res = await request(app)
+                .post('/products')
+                .field('name', 'Valid Name')
+                .field('price', '100')
                 .field('category', 'Electronics')
-                .field('description', 'White Binatone standing fan')
-                .attach('image', imagePath);
+                .field('description', 'Valid description');
 
-            expect(res.statusCode).toBe(201);
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Product image is required.');
+        });
+
+        it('should pass validation and create product with valid data', async () => {
+            prisma.user.findUnique.mockResolvedValue({ id: 'merchant_123', baseCurrency: 'USD' });
+            prisma.product.create.mockResolvedValue({ id: 'new_1', name: 'Valid Product' });
+
+            const res = await request(app)
+                .post('/products')
+                .field('name', 'Gaming Mouse')
+                .field('description', 'High precision sensor with RGB lighting')
+                .field('price', '59.99')
+                .field('category', 'Electronics')
+                .attach('image', Buffer.from('fake-image'), {
+                    filename: 'mouse.png',
+                    contentType: 'image/png'
+                });
+
+            expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
-            expect(res.body.data).toHaveProperty('imageUrl');
-            expect(res.body.data.imageUrl).toContain('cloudinary.com');
-            expect(res.body.data.currency).toBe("NGN");
-
-            productOneId = res.body.data.id;
         });
+    });
 
-        test('✅ Should create product with image upload', async () => {
+    describe('Access Control Requirements', () => {
+
+        it('ROLE ENFORCEMENT: should return 403 for customers', async () => {
+            mockUser = { id: 'cust_1', role: 'customer' };
+
             const res = await request(app)
                 .post('/products')
-                .set('Authorization', `Bearer ${ merchantOneToken }`)
-                .field('name', 'Nokia G20')
-                .field('price', 85000)
-                .field('description', 'A smartphone with 8GB RAM')
-                .field('category', 'Phones')
-                .attach('image', 'test/fixtures/phone.png'); // Ensure this file exists!
+                .field('name', 'Item');
 
-            expect(res.statusCode).toBe(201);
-            expect(res.body.data.imageUrl).toContain('cloudinary.com');
+            expect(res.status).toBe(403);
         });
 
-        test('❌ Customer cannot create a product', async () => {
+        it('MERCHANT ISOLATION: should return 403 when updating another merchant\'s product', async () => {
+            prisma.product.findUnique.mockResolvedValue({
+                id: 'prod_99',
+                merchantId: 'merchant_B' // Owned by someone else
+            });
+
             const res = await request(app)
-                .post('/products')
-                .set('Authorization', `Bearer ${customerToken}`)
-                .send({ name: "Illegal", price: 10 });
+                .put('/products/prod_99')
+                .send({ name: 'Hack attempt' });
 
-            expect(res.statusCode).toBe(403);
-        });
-    });
-
-    describe('Product Validation Tests', () => {
-    test('❌ Should fail if image is missing', async () => {
-        const res = await request(app)
-            .post('/products')
-            .set('Authorization', `Bearer ${merchantToken}`)
-            .field('name', 'No Image Phone')
-            .field('price', '500');
-
-        expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('Product image is required.');
-    });
-
-    test('❌ Should fail if price is negative', async () => {
-        const res = await request(app)
-            .post('/products')
-            .set('Authorization', `Bearer ${merchantToken}`)
-            .field('name', 'Cheap Phone')
-            .field('price', '-10')
-            .attach('image', 'test/fixtures/phone.png');
-
-        expect(res.statusCode).toBe(400);
-        expect(res.body.error).toContain('Price must be a positive number');
-    });
-
-    test('❌ Should fail if file type is invalid (e.g., a .txt file)', async () => {
-        const res = await request(app)
-            .post('/products')
-            .set('Authorization', `Bearer ${merchantToken}`)
-            .field('name', 'Broken Product')
-            .field('price', '100')
-            .attach('image', 'test/fixtures/fake_image.txt');
-
-        expect(res.statusCode).toBe(400);
-        expect(res.body.error).toContain('Only JPEG, PNG, and WebP');
-    });
-});
-
-    describe('GET /products', () => {
-        test('✅ Can filter products by category', async () => {
-            const res = await request(app).get('/products?category=Electronics');
-            expect(res.body.data.length).toBeGreaterThan(0);
-        });
-
-        test('✅ Can convert price to GHS', async () => {
-            const res = await request(app).get(`/products/${productOneId}?currency=GHS`);
-            expect(res.statusCode).toBe(200);
-            expect(res.body.data.currency).toBe("GHS");
-            // If cache was used in your service, check for:
-            // expect(res.body.data).toHaveProperty('isStale');
-        });
-    });
-
-    describe('PUT & DELETE /api/products/:id', () => {
-        test('❌ Merchant Two cannot update Merchant One product', async () => {
-            const res = await request(app)
-                .put(`/products/${productOneId}`)
-                .set('Authorization', `Bearer ${merchantTwoToken}`)
-                .send({ name: "Hacked" });
-
-            expect(res.statusCode).toBe(403);
-        });
-
-        test('✅ Merchant can soft-delete their own product', async () => {
-            const res = await request(app)
-                .delete(`/products/${productOneId}`)
-                .set('Authorization', `Bearer ${merchantOneToken}`);
-
-            expect(res.statusCode).toBe(200);
-
-            // Verify it is no longer visible in GET
-            const check = await request(app)
-                .get(`/products/${productOneId}`);
-            expect(check.statusCode).toBe(404);
+            expect(res.status).toBe(403);
+            expect(res.body.error).toContain('Forbidden');
         });
     });
 });

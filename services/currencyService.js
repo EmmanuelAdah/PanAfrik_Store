@@ -50,7 +50,7 @@ const fetchGrossRates = async () => {
         return finalOutput;
 
     } catch (error) {
-        console.error("Mapping Error:", error);
+        logger.error("Mapping Error:", error);
         return { message: "Failed to fetch currency rates" };
     }
 }
