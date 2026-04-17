@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const redisClient = require('../config/redisConfig');
 
 const fetchExchangeRates = async () => {
     try {
@@ -46,7 +47,7 @@ const fetchGrossRates = async () => {
             stale: false
         };
 
-        console.log(JSON.stringify(finalOutput, null, 2));
+        // console.log(JSON.stringify(finalOutput, null, 2));
         return finalOutput;
 
     } catch (error) {
@@ -57,12 +58,12 @@ const fetchGrossRates = async () => {
 
 const convertCurrency = async (amount, fromCurrency, toCurrency) => {
     try {
-        const exchange = await fetchExchangeRates();
+        const exchange = await redisClient.get('rates:global:latest');
 
         const rate = exchange.rates[fromCurrency][toCurrency]
         return amount * rate;
     } catch (error) {
-        console.error("Currency Conversion Error:", error.message);
+        console.error("Currency Conversion Error: ", error.message);
         return null;
     }
 };
