@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1776386130600" clover="3.2.0">
-  <project timestamp="1776386130601" name="All files">
-    <metrics statements="619" coveredstatements="498" conditionals="4140" coveredconditionals="792" methods="1425" coveredmethods="359" elements="6184" coveredelements="1649" complexity="0" loc="619" ncloc="619" packages="9" files="29" classes="29"/>
+<coverage generated="1776389796779" clover="3.2.0">
+  <project timestamp="1776389796779" name="All files">
+    <metrics statements="620" coveredstatements="508" conditionals="4140" coveredconditionals="794" methods="1425" coveredmethods="359" elements="6185" coveredelements="1661" complexity="0" loc="620" ncloc="620" packages="9" files="29" classes="29"/>
     <package name="PanAfrik_Store">
       <metrics statements="18" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="app.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/app.js">
@@ -48,18 +48,18 @@
       </file>
       <file name="redisConfig.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/config/redisConfig.js">
         <metrics statements="12" coveredstatements="10" conditionals="2" coveredconditionals="1" methods="4" coveredmethods="2"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="2" count="4" type="stmt"/>
-        <line num="5" count="4" type="stmt"/>
-        <line num="7" count="4" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="2" count="5" type="stmt"/>
+        <line num="5" count="5" type="stmt"/>
+        <line num="7" count="5" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
-        <line num="16" count="4" type="stmt"/>
-        <line num="17" count="4" type="stmt"/>
-        <line num="19" count="4" type="stmt"/>
-        <line num="20" count="4" type="stmt"/>
-        <line num="21" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="16" count="5" type="stmt"/>
+        <line num="17" count="5" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="5" type="stmt"/>
+        <line num="21" count="5" type="cond" truecount="1" falsecount="1"/>
         <line num="23" count="0" type="stmt"/>
-        <line num="27" count="4" type="stmt"/>
+        <line num="27" count="5" type="stmt"/>
       </file>
     </package>
     <package name="PanAfrik_Store.controllers">
@@ -603,44 +603,45 @@
       </file>
     </package>
     <package name="PanAfrik_Store.services">
-      <metrics statements="79" coveredstatements="50" conditionals="10" coveredconditionals="6" methods="9" coveredmethods="5"/>
+      <metrics statements="80" coveredstatements="60" conditionals="10" coveredconditionals="8" methods="9" coveredmethods="5"/>
       <file name="currencyService.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/services/currencyService.js">
-        <metrics statements="35" coveredstatements="20" conditionals="4" coveredconditionals="2" methods="5" coveredmethods="4"/>
+        <metrics statements="36" coveredstatements="30" conditionals="4" coveredconditionals="4" methods="5" coveredmethods="4"/>
         <line num="1" count="4" type="stmt"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="4" count="5" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
         <line num="5" count="5" type="stmt"/>
-        <line num="7" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="8" count="0" type="stmt"/>
-        <line num="11" count="0" type="stmt"/>
-        <line num="13" count="0" type="stmt"/>
-        <line num="15" count="0" type="stmt"/>
-        <line num="17" count="5" type="stmt"/>
-        <line num="21" count="4" type="stmt"/>
-        <line num="22" count="5" type="stmt"/>
+        <line num="6" count="5" type="stmt"/>
+        <line num="8" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="22" count="4" type="stmt"/>
         <line num="23" count="5" type="stmt"/>
-        <line num="25" count="5" type="stmt"/>
-        <line num="26" count="5" type="stmt"/>
-        <line num="28" count="5" type="stmt"/>
-        <line num="29" count="5" type="stmt"/>
-        <line num="31" count="5" type="stmt"/>
-        <line num="32" count="10" type="cond" truecount="2" falsecount="0"/>
-        <line num="35" count="5" type="stmt"/>
-        <line num="38" count="0" type="stmt"/>
-        <line num="43" count="0" type="stmt"/>
-        <line num="49" count="0" type="stmt"/>
-        <line num="50" count="0" type="stmt"/>
-        <line num="53" count="5" type="stmt"/>
-        <line num="54" count="5" type="stmt"/>
-        <line num="58" count="4" type="stmt"/>
-        <line num="59" count="0" type="stmt"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
+        <line num="29" count="3" type="stmt"/>
+        <line num="30" count="7" type="stmt"/>
+        <line num="32" count="7" type="stmt"/>
+        <line num="33" count="29" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="22" type="stmt"/>
+        <line num="39" count="20" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="54" count="2" type="stmt"/>
+        <line num="55" count="2" type="stmt"/>
+        <line num="59" count="4" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
-        <line num="62" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
         <line num="63" count="0" type="stmt"/>
-        <line num="65" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
-        <line num="70" count="4" type="stmt"/>
-        <line num="75" count="4" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="71" count="4" type="stmt"/>
+        <line num="76" count="4" type="stmt"/>
       </file>
       <file name="rateService.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/services/rateService.js">
         <metrics statements="33" coveredstatements="27" conditionals="4" coveredconditionals="4" methods="3" coveredmethods="1"/>

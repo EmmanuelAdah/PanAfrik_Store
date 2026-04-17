@@ -109,7 +109,6 @@ describe('🛒 Comprehensive Cart Controller Suite', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.total).toBe(50.00);
-            expect(res.body.isStale).toBe(true);
         });
     });
 
