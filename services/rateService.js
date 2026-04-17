@@ -10,56 +10,62 @@ const syncExchangeRates = async () => {
     const fetchTime = new Date();
 
     try {
-        // 1. Attempt fresh fetch from your external provider
+        // Attempt fresh fetch
         ratesData = await fetchGrossRates();
         logger.info('✅ External rates fetched successfully.');
     } catch (err) {
-        // 2. Fallback: If API is down, grab the last known good rates from Postgres
+        // Fallback Logic
         logger.error('⚠️ External API Error. Falling back to last known rates.');
         isStale = true;
 
         const lastKnown = await prisma.rateCache.findFirst({
             orderBy: { fetchedAt: 'desc' }
         });
-        ratesData = lastKnown ? lastKnown.rates : null;
+
+        if (lastKnown) {
+            ratesData = lastKnown.rates;
+        }
     }
 
+    // Global Guard: If even the DB is empty
     if (!ratesData) {
         logger.error('❌ Critical: No rate data found in API or Database.');
         return;
     }
 
     try {
-        // Persist to Postgres (Audit Trail)
+        // Persist as a NEW record (even if stale)
         await prisma.rateCache.create({
             data: {
-                baseCurrency: 'GLOBAL',
+                baseCurrency: 'USD',
                 rates: ratesData,
-                fetchedAt: fetchTime
+                fetchedAt: fetchTime,
             }
         });
 
-        // Update Redis with the latest rates
+        //  Update Redis with the exact same version
         const cachePayload = {
             rates: ratesData,
             fetched_at: fetchTime,
             stale: isStale
         };
 
-        await redisClient.set('rates:global:latest', JSON.stringify(cachePayload));
-        logger.info(`🚀 Sync Complete. Redis Updated (Stale: ${isStale})`);
+       // Set with a 1-hour expiration
+        await redisClient.set(
+            'rates:global:latest',
+            JSON.stringify(cachePayload),
+            { EX: 3600 }
+        );
+        logger.info(`🚀 Sync Complete. Redis & DB Updated (Stale: ${isStale})`);
 
     } catch (err) {
         logger.error('❌ Persistence Failure (Postgres/Redis)', err);
     }
 };
 
-// Schedule the task to run every 30 minutes
-const initRateCron = async () => {
-
-    // Syntax: (minute) (hour) (day of month) (month) (day of week)
+const initRateCron = () => {
     cron.schedule('*/30 * * * *', async () => {
-        logger.info('Timer Triggered: Starting Exchange Rate Sync...');
+        logger.info('Timer Triggered: Starting Exchange Rate Sync... : ', new Date().toISOString());
         try {
             await syncExchangeRates();
         } catch (error) {
@@ -67,10 +73,9 @@ const initRateCron = async () => {
         }
     });
     logger.info('Cron Scheduler initialized: Running every 30 minutes.');
-}
+};
 
 module.exports = {
     syncExchangeRates,
     initRateCron
 };
-

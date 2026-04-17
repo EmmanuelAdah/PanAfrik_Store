@@ -45,51 +45,55 @@ describe('syncExchangeRates', () => {
         jest.clearAllMocks();
     });
 
-    test('✅ Success: Should fetch nested API data and persist correctly', async () => {
+    test('✅ Success: Should fetch API data, persist to DB, and set Redis with 1h TTL', async () => {
         fetchGrossRates.mockResolvedValue(mockRatesData);
         prisma.rateCache.create.mockResolvedValue({});
         redisClient.set.mockResolvedValue('OK');
 
         await syncExchangeRates();
 
-        // Check if API was called
+        // 1. Check if API was called
         expect(fetchGrossRates).toHaveBeenCalledTimes(1);
 
-        // Check Postgres persistence (ensuring the nested object is passed)
+        // 2. Check Postgres persistence
         expect(prisma.rateCache.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({
                     rates: mockRatesData,
-                    baseCurrency: 'GLOBAL'
+                    baseCurrency: 'USD',
                 })
             })
         );
 
-        // Check Redis update contains the nested values and correct stale status
-        const redisCall = redisClient.set.mock.calls[0];
-        const payload = JSON.parse(redisCall[1]);
+        // 3. Check Redis update for Payload AND TTL
+        expect(redisClient.set).toHaveBeenCalledWith(
+            'rates:global:latest',
+            expect.any(String),
+            { EX: 3600 } // Validates the TTL integration
+        );
 
+        const payload = JSON.parse(redisClient.set.mock.calls[0][1]);
         expect(payload.rates.USD.NGN).toBe(1345.911);
         expect(payload.stale).toBe(false);
-        expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Sync Complete'));
     });
 
-    test('⚠️ Fallback: Should use nested rates from Postgres if API fails', async () => {
+    test('⚠️ Fallback: Should use nested rates from DB and still apply 1h TTL', async () => {
         fetchGrossRates.mockRejectedValue(new Error('API Down'));
-
-        // Simulate finding the last record in DB with the same structure
         prisma.rateCache.findFirst.mockResolvedValue({ rates: mockRatesData });
 
         await syncExchangeRates();
 
         expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('External API Error'));
 
-        // Verify Redis update uses DB data and marks it as stale
-        const redisCall = redisClient.set.mock.calls[0];
-        const payload = JSON.parse(redisCall[1]);
+        // Verify Redis still gets the 1h TTL even on fallback data
+        expect(redisClient.set).toHaveBeenCalledWith(
+            'rates:global:latest',
+            expect.stringContaining('"stale":true'),
+            { EX: 3600 }
+        );
 
+        const payload = JSON.parse(redisClient.set.mock.calls[0][1]);
         expect(payload.rates.GHS.NGN).toBe(121.39432);
-        expect(payload.stale).toBe(true);
     });
 
     test('❌ Failure: Should log critical error if both sources are empty', async () => {
