@@ -1,28 +1,25 @@
 const Joi = require('joi');
 
-const registerSchema = Joi.object({
-    first_name: Joi.string()
-        .min(3)
-        .max(50)
-        .required()
-        .messages({
-            'string.empty': 'First name is required',
-            'string.min': 'First name must be at least 3 characters long'
-        }),
 
-    last_name: Joi.string()
+const uuidSchema = Joi.string().guid({ version: 'uuidv4' });
+
+// USER REGISTRATION SCHEMA
+const registerSchema = Joi.object({
+    fullName: Joi.string()
         .min(3)
-        .max(50)
+        .max(100)
         .required()
+        .trim()
         .messages({
-            'string.empty': 'Last name is required',
-            'string.min': 'Last name must be at least 3 characters long'
+            'string.empty': 'Full name is required',
+            'string.min': 'Full name must be at least 3 characters long'
         }),
 
     email: Joi.string()
         .email()
         .lowercase()
         .required()
+        .trim()
         .messages({
             'string.email': 'Please provide a valid email address'
         }),
@@ -38,100 +35,67 @@ const registerSchema = Joi.object({
 
     role: Joi.string()
         .valid('merchant', 'customer')
-        .messages({
-            'message': 'Invalid role'
-        })
-        .required(),
+        .required()
+        .messages({ 'any.only': 'Invalid role' }),
 
     country: Joi.string()
-        .valid('NG', 'GH', 'KE', 'ZA')
+        .length(2)
         .uppercase()
+        .valid('NG', 'GH', 'KE', 'ZA')
         .required(),
 
-    base_currency: Joi.string()
-        .valid('NGN', 'GHS', 'KES', 'ZAR')
+    baseCurrency: Joi.string()
+        .length(3)
         .uppercase()
+        .valid('NGN', 'GHS', 'KES', 'ZAR')
         .required()
 });
 
-const validateRegistration = (data) => {
-    return registerSchema.validate(data, { abortEarly: false });
-};
+// PRODUCT SCHEMA
+const productSchema = Joi.object({
+    name: Joi.string().min(3).max(255).required().trim(),
+    description: Joi.string().max(1000).required().trim(),
+    price: Joi.number().positive().precision(2).required(),
+    category: Joi.string().max(100).required().trim(),
 
-const productSchema = (data) => {
-    const schema = Joi.object({
-        name: Joi.string()
-            .min(3)
-            .max(255)
-            .required()
-            .trim(),
-
-        description: Joi.string()
-            .max(1000)
-            .required()
-            .trim(),
-
-        price: Joi.number()
-            .positive()
-            .precision(2)
+    // Multer File Validation
+    image: Joi.object({
+        fieldname: Joi.string(),
+        originalname: Joi.string(),
+        encoding: Joi.string(),
+        mimetype: Joi.string()
+            .valid('image/jpeg', 'image/jpg', 'image/png', 'image/webp')
             .required(),
+        size: Joi.number().max(5 * 1024 * 1024).required(), // 5MB
+        buffer: Joi.any()
+    }).required().messages({
+        'any.required': 'Product image is required.',
+        'number.max': 'Image size must be less than 5MB.',
+        'any.only': 'Only JPEG, PNG, and WebP images are allowed.'
+    })
+});
 
-        category: Joi.string()
-            .max(100)
-            .required()
-            .trim(),
-
-        // Validate file metadata if you pass req.file to this function
-        image: Joi.object({
-            fieldname: Joi.string(),
-            originalname: Joi.string(),
-            encoding: Joi.string(),
-            mimetype: Joi.string().valid('image/jpeg', 'image/jpg', 'image/png', 'image/webp').required(),
-            size: Joi.number().max(5 * 1024 * 1024).required(), // 5MB
-            buffer: Joi.any()
-        }).required()
-            .messages({
-                'any.required': 'Product image is required.',
-                'number.max': 'Image size must be less than 5MB.',
-                'any.only': 'Only JPEG, PNG, and WebP images are allowed.'
-            })
-    });
-
-    return schema.validate(data);
-};
-
-const validateProduct = (data) => {
-    return productSchema.validate(data, { abortEarly: false });
-};
 
 const cartItemSchema = Joi.object({
-    productId: Joi.string()
-        .guid({ version: 'uuidv4' })
-        .required()
-        .messages({
-            'string.guid': 'Product ID must be a valid UUID.',
-            'any.required': 'Product ID is required.'
-        }),
+    productId: uuidSchema.required().messages({
+        'string.guid': 'Product ID must be a valid UUID.',
+        'any.required': 'Product ID is required.'
+    }),
 
-    quantity: Joi.number()
-        .integer()
-        .min(1)
-        .max(1000) // Optional upper limit to prevent overflow or errors
-        .required()
-        .messages({
-            'number.base': 'Quantity must be a number.',
-            'number.integer': 'Quantity must be a whole number.',
-            'number.min': 'Quantity must be at least 1.',
-            'any.required': 'Quantity is required.'
-        })
+    quantity: Joi.number().integer().min(1).max(1000).required().messages({
+        'number.base': 'Quantity must be a number.',
+        'number.min': 'Quantity must be at least 1.',
+        'any.required': 'Quantity is required.'
+    })
 });
 
-const validateCart = (data) => {
-    return cartItemSchema.validate(data, { abortEarly: false });
+
+const validate = (schema, data) => {
+    return schema.validate(data, { abortEarly: false, stripUnknown: true });
 };
 
 module.exports = {
-    validateRegistration,
-    validateProduct,
-    validateCart
+    validateRegistration: (data) => validate(registerSchema, data),
+    validateProduct: (data) => validate(productSchema, data),
+    validateCart: (data) => validate(cartItemSchema, data)
 };
