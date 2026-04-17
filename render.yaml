@@ -1,21 +1,19 @@
 services:
   - type: web
-    name: pan-afrik-store
-    runtime: node # Explicitly set your runtime
-    plan: starter # Changed to starter for private network support
+    name: pan-afrik-redis
+    runtime: node
+    plan: free
     region: frankfurt
+    healthCheckPath: /health
     envVars:
       - key: REDIS_URL
         fromService:
-          type: keyvalue # Use 'keyvalue' for Redis
+          type: keyvalue
           name: panafrik-redis
-          property: connectionString
+          property: internalConnectionString
       - key: JWT_SECRET
         sync: false
       - key: EXCHANGE_RATE_API_KEY
         sync: false
-
-  - type: keyvalue # Modern name for Redis
-    name: panafrik-redis
-    plan: free
-    ipAllowList: [] # Stays private
+      - key: NODE_ENV
+        value: production
