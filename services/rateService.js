@@ -79,3 +79,5 @@ module.exports = {
     syncExchangeRates,
     initRateCron
 };
+
+ syncExchangeRates()

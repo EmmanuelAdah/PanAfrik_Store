@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "prebuild": "npx prisma generate",
-    "build": "npx prisma migrate deploy",
+    "build": "npx prisma migrate deploy || npx prisma db push",
     "postbuild": "echo Build completed successfully",
     "start": "node server.js",
     "dev": "nodemon server.js",
