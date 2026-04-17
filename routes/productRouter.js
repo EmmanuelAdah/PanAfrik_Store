@@ -6,10 +6,13 @@ const authorizeRoles = require('../middleware/roleCheck');
 const { upload } = require('../config/cloudinaryConfig');
 const catchAsyncErrors = require('../utils/catchAsyncErrors');
 
-
 router.get(
     '/',
     catchAsyncErrors(productController.getAllProducts)
+);
+router.get(
+    '/:id',
+    catchAsyncErrors(productController.getProduct)
 );
 router.post(
     '/',

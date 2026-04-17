@@ -1,6 +1,6 @@
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
-const { validateProduct } = require('../utils/validator');
+const { validateProduct, validateReq } = require('../utils/validator');
 const { convertCurrency } = require('../services/currencyService');
 const uploadImage = require('../services/uploadImage');
 
@@ -49,10 +49,13 @@ exports.getAllProducts = async (req, res) => {
 };
 
 // GET /products/:id - Single product with conversion
-exports.getProductById = async (req, res) => {
+exports.getProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const { currency } = req.query;
+
+        const { error } = validateReq({ id, currency });
+        if (error) return res.status(400).json({ error: error.details[0].message });
 
         const product = await prisma.product.findUnique({
             where: { id, isActive: true }
