@@ -52,10 +52,10 @@ describe('syncExchangeRates', () => {
 
         await syncExchangeRates();
 
-        // 1. Check if API was called
+        // Check if API was called
         expect(fetchGrossRates).toHaveBeenCalledTimes(1);
 
-        // 2. Check Postgres persistence
+        // Check Postgres persistence
         expect(prisma.rateCache.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({
@@ -65,7 +65,7 @@ describe('syncExchangeRates', () => {
             })
         );
 
-        // 3. Check Redis update for Payload AND TTL
+        // Check Redis update for Payload AND TTL
         expect(redisClient.set).toHaveBeenCalledWith(
             'rates:global:latest',
             expect.any(String),
