@@ -5,14 +5,24 @@ const uuidSchema = Joi.string().guid({ version: 'uuidv4' });
 
 // USER REGISTRATION SCHEMA
 const registerSchema = Joi.object({
-    fullName: Joi.string()
+    first_name: Joi.string()
         .min(3)
         .max(100)
         .required()
         .trim()
         .messages({
-            'string.empty': 'Full name is required',
-            'string.min': 'Full name must be at least 3 characters long'
+            'string.empty': 'First name is required',
+            'string.min': 'First name must be at least 3 characters long'
+        }),
+
+    last_name: Joi.string()
+        .min(3)
+        .max(100)
+        .required()
+        .trim()
+        .messages({
+            'string.empty': 'Last name is required',
+            'string.min': 'Last name must be at least 3 characters long'
         }),
 
     email: Joi.string()
@@ -44,7 +54,7 @@ const registerSchema = Joi.object({
         .valid('NG', 'GH', 'KE', 'ZA')
         .required(),
 
-    baseCurrency: Joi.string()
+    base_currency: Joi.string()
         .length(3)
         .uppercase()
         .valid('NGN', 'GHS', 'KES', 'ZAR')
@@ -112,6 +122,18 @@ const cartItemSchema = Joi.object({
     })
 });
 
+const validateRequest = Joi.object({
+        id: Joi.string()
+            .guid({ version: 'uuidv4' })
+            .required(),
+
+        currency: Joi.string()
+            .uppercase()
+            .length(3)
+            .valid('NGN', 'GHS', 'KES', 'ZAR', 'USD')
+            .optional()
+    });
+
 const validate = (schema, data) => {
     return schema.validate(data, { abortEarly: false, stripUnknown: true });
 };
@@ -119,5 +141,6 @@ const validate = (schema, data) => {
 module.exports = {
     validateRegistration: (data) => validate(registerSchema, data),
     validateProduct: (data) => validate(productSchema, data),
-    validateCart: (data) => validate(cartItemSchema, data)
+    validateCart: (data) => validate(cartItemSchema, data),
+    validateReq: (data) => validate(validateRequest, data),
 };

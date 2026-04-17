@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const { corsConfig } = require('./config/corsConfig');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
+const { initRateCron } = require('./services/rateService');
 
 const app = express();
 
@@ -34,6 +35,7 @@ const PORT = process.env.PORT || 3000;
 
 const server = app.listen(PORT, () => {
     console.log(`🚀 Server started on port ${PORT}`);
+    initRateCron();
 });
 
 // Catch asynchronous "unhandled promises"

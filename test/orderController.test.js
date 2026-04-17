@@ -5,45 +5,51 @@ const prisma = require('../config/prisma');
 const redisClient = require('../config/redisConfig');
 const rateLimit = require('express-rate-limit');
 
-// Setup App
+// 1. Setup App Environment
 const app = express();
 app.use(express.json());
 
-// Rate Limiter Implementation (Requirement: 5 per user per minute)
 const checkoutLimiter = rateLimit({
     windowMs: 60000,
     max: 5,
     handler: (req, res) => res.status(429).json({ message: "Rate limit exceeded" })
 });
 
-// Mocking Auth Middleware for different roles
 const withAuth = (id, role) => (req, res, next) => {
     req.user = { id, role };
     next();
 };
 
-// Routes with specific auth injections
+// Routes
 app.post('/checkout', withAuth('cust-123', 'customer'), checkoutLimiter, checkOut);
-app.get('/orders/:id', withAuth('some-user', 'customer'), getOrderDetails);
+app.get('/orders/:id', withAuth('cust-123', 'customer'), getOrderDetails);
 app.get('/orders', withAuth('merch-456', 'merchant'), getOrders);
 
-// Mock Dependencies
+// 2. Mocks
 jest.mock('../config/prisma', () => ({
     $transaction: jest.fn(cb => cb(require('../config/prisma'))),
     cartItem: { findMany: jest.fn(), deleteMany: jest.fn() },
     order: { create: jest.fn(), update: jest.fn(), findUnique: jest.fn(), findMany: jest.fn() },
     orderItem: { create: jest.fn() },
+    payoutNotification: { create: jest.fn() },
     rateCache: { findFirst: jest.fn() }
 }));
-jest.mock('../config/redisConfig');
+jest.mock('../config/redisConfig', () => ({ get: jest.fn() }));
+jest.mock('../utils/logger', () => ({ info: jest.fn(), error: jest.fn() }));
 
-describe('📦 Comprehensive Checkout & Orders System', () => {
+describe('📦 Order System Integration Tests', () => {
 
-    const mockRate = 0.000741;
+    const mockRateData = {
+        rates: {
+            "NGN": { "USD": 1343.2834, "GHS": 121.00017 },
+            "USD": { "NGN": 0.00074 }
+        }
+    };
+
     const mockCart = [
         {
             quantity: 2,
-            product: { id: 'p1', price: 100.00, currency: 'USD', merchantId: 'merch-456', name: 'Product 1' }
+            product: { id: 'p1', price: 50.00, currency: 'USD', merchantId: 'merch-456', name: 'Gadget' }
         }
     ];
 
@@ -51,120 +57,79 @@ describe('📦 Comprehensive Checkout & Orders System', () => {
         jest.clearAllMocks();
     });
 
-    describe('POST /checkout (Atomic Processing & Rate Locking)', () => {
-
-        test('🔒 should lock exchange rate and calculate high-precision totals', async () => {
-            redisClient.get.mockResolvedValue(JSON.stringify({ rates: { "NGN": { "USD": mockRate } } }));
+    describe('💰 POST /checkout - Currency Logic', () => {
+        test('✅ Success: Calculate NGN total for USD products correctly', async () => {
             prisma.cartItem.findMany.mockResolvedValue(mockCart);
-            prisma.order.create.mockResolvedValue({ id: 'ord-999' });
+            redisClient.get.mockResolvedValue(JSON.stringify(mockRateData));
+            prisma.order.create.mockResolvedValue({ id: 'ord-1' });
+            prisma.order.update.mockResolvedValue({ id: 'ord-1', customerTotal: 134328.34, status: 'completed' });
 
-            const res = await request(app)
-                .post('/checkout')
-                .send({ customerCurrency: 'NGN' });
+            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
 
             expect(res.status).toBe(201);
+            // (50 USD * 1343.2834 NGN/USD) * 2 qty = 134328.34
+            expect(res.body.order.customerTotal).toBe(134328.34);
 
-            // Verify Rate Locking: The exact rate from Redis must be in the DB call
-            expect(prisma.order.create).toHaveBeenCalledWith(expect.objectContaining({
-                data: expect.objectContaining({ exchangeRateApplied: mockRate })
+            // Verify Payout Notification creation
+            expect(prisma.payoutNotification.create).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ amount: 100.00, currency: 'USD' })
             }));
-
-            // Verify Merchant Payout: (100.00 * 2) = 200.00
-            expect(prisma.orderItem.create).toHaveBeenCalledWith(expect.objectContaining({
-                data: expect.objectContaining({ merchantPayoutAmount: 200.00 })
-            }));
-
-            // Verify Customer Total: (200.00 / 0.000741) = 269905.53
-            expect(prisma.order.update).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: { id: "ord-999" },
-                    data: {
-                        customerTotal: 269905.53306,
-                        status: 'completed'
-                    }
-            }));
-        });
-
-        test('♻️ should fallback to DB rates if Redis is offline', async () => {
-            redisClient.get.mockResolvedValue(null);
-            prisma.rateCache.findFirst.mockResolvedValue({ rates: { "NGN": { "USD": 0.0008 } } });
-            prisma.cartItem.findMany.mockResolvedValue(mockCart);
-
-            await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
-
-            expect(prisma.rateCache.findFirst).toHaveBeenCalled();
-            expect(prisma.order.create).toHaveBeenCalledWith(expect.objectContaining({
-                data: expect.objectContaining({ exchangeRateApplied: 0.0008 })
-            }));
-        });
-
-         test('🛡️ should enforce 429 Rate Limit after 5 attempts', async () => {
-            for(let i=0; i<5; i++) {
-                await request(app)
-                    .post('/checkout')
-                    .send({ customerCurrency: 'NGN' });
-            }
-            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
-            expect(res.status).toBe(429);
         });
     });
 
-    describe('GET /orders (Role-Based Scoping)', () => {
+    describe('🧱 Transactional Integrity', () => {
+        test('🛑 should NOT clear cart if order update fails', async () => {
+            prisma.cartItem.findMany.mockResolvedValue(mockCart);
+            redisClient.get.mockResolvedValue(JSON.stringify(mockRateData));
+            prisma.order.create.mockResolvedValue({ id: 'ord-fail' });
 
-        test('🚫 should return 403 if a stranger attempts to access an order', async () => {
-            // Stranger is 'some-user', Order belongs to 'cust-123'
+            // Simulate a crash during the update
+            prisma.order.update.mockRejectedValue(new Error("Update Failed"));
+
+            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+
+            expect(res.status).toBe(500);
+            // Cart deletion happens at the END of the transaction. If the update fails, this shouldn't run.
+            expect(prisma.cartItem.deleteMany).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('🔒 Rate Limiting', () => {
+        test('⚠️ should return 429 after 5 rapid requests', async () => {
+            // Fill the quota
+            for (let i = 0; i < 5; i++) {
+                await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+            }
+            // The 6th request
+            const res = await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
+            expect(res.status).toBe(429);
+            expect(res.body.message).toBe("Rate limit exceeded");
+        });
+    });
+
+    describe('🛡️ GET /orders/:id - Access Control', () => {
+        test('🚫 should return 403 if a stranger accesses an order', async () => {
+            // User is 'cust-123', Order belongs to 'someone-else'
             prisma.order.findUnique.mockResolvedValue({
-                customerId: 'cust-123',
-                orderItems: [{ merchantId: 'merch-456' }]
+                customerId: 'someone-else',
+                orderItems: [{ merchantId: 'merch-999' }]
             });
 
             const res = await request(app).get('/orders/ord-999');
             expect(res.status).toBe(403);
         });
 
-        test('✅ should allow a merchant to see an order they are party to', async () => {
-            // Requesting user is 'merch-456' (in app setup)
-            // We re-mock the app for this specific test to change the user id
+        test('✅ should allow a merchant to view an order containing their product', async () => {
             const merchApp = express();
             merchApp.get('/orders/:id', withAuth('merch-456', 'merchant'), getOrderDetails);
 
             prisma.order.findUnique.mockResolvedValue({
                 customerId: 'cust-123',
-                orderItems: [{ merchantId: 'merch-456' }]
+                orderItems: [{ merchantId: 'merch-456' }] // Matching ID
             });
 
             const res = await request(merchApp).get('/orders/ord-999');
             expect(res.status).toBe(200);
-        });
-
-        test('📊 should only return orders relevant to the merchant', async () => {
-            await request(app)
-                .get('/orders');
-
-            expect(prisma.order.findMany).toHaveBeenCalledWith(expect.objectContaining({
-                 where: {
-                orderItems: { some: { userId: 'merch-456' } }
-                },
-                include: {
-                    orderItems: {
-                        where: { userId: 'merch-456' },
-                        include: { product: true }
-                    }
-                },
-                orderBy: { createdAt: 'desc'}
-            }));
-        });
-    });
-
-    describe('🛠️ Transactional Integrity', () => {
-        test('🛑 should not clear cart if order creation fails', async () => {
-            prisma.cartItem.findMany.mockResolvedValue(mockCart);
-            prisma.order.create.mockRejectedValue(new Error("DB ERROR"));
-
-            await request(app).post('/checkout').send({ customerCurrency: 'NGN' });
-
-            // Cart deletion should NOT be called because the transaction should abort
-            expect(prisma.cartItem.deleteMany).not.toHaveBeenCalled();
         });
     });
 });

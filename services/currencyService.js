@@ -43,8 +43,6 @@ const fetchGrossRates = async () => {
         // Construct the final object
         const finalOutput = {
             rates: {...currencyMap},
-            fetched_at: new Date().toISOString(),
-            stale: false
         };
 
         // console.log(JSON.stringify(finalOutput, null, 2));
@@ -63,7 +61,7 @@ const convertCurrency = async (amount, fromCurrency, toCurrency) => {
         const rate = exchange.rates[fromCurrency][toCurrency]
         return amount * rate;
     } catch (error) {
-        console.error("Currency Conversion Error: ", error.message);
+        logger.error("Currency Conversion Error: ", error.message);
         return null;
     }
 };

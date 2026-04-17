@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 
 exports.checkOut = async (req, res) => {
     const userId = req.user.id;
-    const { customerCurrency } = req.body;
+    const { customerCurrency } = req.body; // e.g., 'NGN'
 
     try {
         const result = await prisma.$transaction(async (tx) => {
@@ -15,9 +15,9 @@ exports.checkOut = async (req, res) => {
                 include: { product: true }
             });
 
-            if (cartItems.length === 0) throw new Error("Cart is empty");
+            if (cartItems.length === 0) throw new Error("CART_EMPTY");
 
-            // Fetch & Lock Exchange Rate (Redis -> DB Fallback)
+            // Rate Locking: Fetch & Lock Exchange Rate
             const cachedData = await redisClient.get('rates:global:latest');
             let rateData = cachedData ? JSON.parse(cachedData).rates : null;
 
@@ -28,35 +28,52 @@ exports.checkOut = async (req, res) => {
 
             if (!rateData) throw new Error("EXCHANGE_RATE_UNAVAILABLE");
 
-            const exchangeRate = rateData[customerCurrency]?.['USD'] || 1;
-
             // Initialize Order
+            // We store the Customer's USD rate as a reference point for the whole order
+            const globalExchangeRate = rateData[customerCurrency]?.['USD'] || 1;
+
             const order = await tx.order.create({
                 data: {
                     customerId: userId,
                     customerCurrency: customerCurrency,
-                    exchangeRateApplied: exchangeRate,
-                    customerTotal: 0
+                    exchangeRateApplied: globalExchangeRate,
+                    customerTotal: 0,
+                    status: 'pending'
                 }
             });
 
             let runningCustomerTotal = 0;
+            const merchantTotals = {};
 
             // Create Order Items & Calculate Payouts
             for (const item of cartItems) {
                 const product = item.product;
+                const merchantCurrency = product.currency;
 
-                // Merchant calculations (original currency)
-                const unitPriceMerchant = product.price;
-                const payoutAmount = Number(unitPriceMerchant) * item.quantity;
+                // DYNAMIC CALCULATION:
+                // If Customer is NGN and Merchant is GHS, we need to rateData['NGN']['GHS']
+                const specificRate = customerCurrency === merchantCurrency
+                    ? 1
+                    : rateData[customerCurrency]?.[merchantCurrency];
 
-                // Customer calculations (converted currency)
-                // If product is USD and customer is NGN, and rate NGN->USD is 0.00074:
-                // PriceInNGN = PriceInUSD / 0.00074
-                const unitPriceCustomer = Number(unitPriceMerchant) / Number(exchangeRate);
-                const lineTotalCustomer = Number((unitPriceCustomer * item.quantity).toFixed(5));
+                if (!specificRate) throw new Error(`RATE_NOT_FOUND: ${merchantCurrency} to ${customerCurrency}`);
+
+                // Merchant Payout (Original Product Currency)
+                const unitPriceMerchant = Number(product.price);
+                const linePayoutAmount = unitPriceMerchant * item.quantity;
+
+                // Customer Cost (Converted)
+                // If the price is 10 GHS and 1 GHS = 121 NGN, the Customer pays 10 * 121 = 1210 NGN
+                const unitPriceCustomer = unitPriceMerchant * specificRate;
+                const lineTotalCustomer = Number((unitPriceCustomer * item.quantity).toFixed(2));
 
                 runningCustomerTotal += lineTotalCustomer;
+
+                // Track total per merchant for PayoutNotification
+                if (!merchantTotals[product.merchantId]) {
+                    merchantTotals[product.merchantId] = { amount: 0, currency: merchantCurrency };
+                }
+                merchantTotals[product.merchantId].amount += linePayoutAmount;
 
                 await tx.orderItem.create({
                     data: {
@@ -65,8 +82,21 @@ exports.checkOut = async (req, res) => {
                         merchantId: product.merchantId,
                         quantity: item.quantity,
                         unitPriceMerchantCurrency: unitPriceMerchant,
-                        merchantCurrency: product.currency,
-                        merchantPayoutAmount: payoutAmount
+                        merchantCurrency: merchantCurrency,
+                        merchantPayoutAmount: linePayoutAmount
+                    }
+                });
+            }
+
+            // Create Payout Notifications
+            for (const [merchantId, data] of Object.entries(merchantTotals)) {
+                await tx.payoutNotification.create({
+                    data: {
+                        orderId: order.id,
+                        merchantId: merchantId,
+                        amount: data.amount,
+                        currency: data.currency,
+                        status: 'pending'
                     }
                 });
             }
@@ -81,16 +111,14 @@ exports.checkOut = async (req, res) => {
             });
 
             await tx.cartItem.deleteMany({ where: { userId } });
-
             return finalizedOrder;
         });
 
         res.status(201).json({ success: true, order: result });
-
     } catch (error) {
-        logger.error('Checkout Error:', error.message);
+        logger.error('Checkout Error:', { message: error.message, userId });
         const status = error.message === "CART_EMPTY" ? 400 : 500;
-        res.status(status).json({ message: error.message });
+        res.status(status).json({ success: false, message: error.message });
     }
 };
 

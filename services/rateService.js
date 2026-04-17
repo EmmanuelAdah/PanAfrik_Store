@@ -23,7 +23,7 @@ const syncExchangeRates = async () => {
         });
 
         if (lastKnown) {
-            ratesData = lastKnown.rates;
+            ratesData = {rates: lastKnown.rates};
         }
     }
 
@@ -33,19 +33,21 @@ const syncExchangeRates = async () => {
         return;
     }
 
+    // console.log(JSON.stringify(ratesData.rates, null, 2));
+
     try {
         // Persist as a NEW record (even if stale)
         await prisma.rateCache.create({
             data: {
                 baseCurrency: 'USD',
-                rates: ratesData,
+                rates: ratesData.rates,
                 fetchedAt: fetchTime,
             }
         });
 
         //  Update Redis with the exact same version
         const cachePayload = {
-            rates: ratesData,
+            rates: ratesData.rates,
             fetched_at: fetchTime,
             stale: isStale
         };
@@ -64,14 +66,20 @@ const syncExchangeRates = async () => {
 };
 
 const initRateCron = () => {
+    // Run an initial sync immediately on startup so the cache isn't empty
+    syncExchangeRates().catch(err => logger.error('Initial startup sync failed', err));
+
     cron.schedule('*/30 * * * *', async () => {
-        logger.info('Timer Triggered: Starting Exchange Rate Sync... : ', new Date().toISOString());
+        logger.info('Timer Triggered: Starting Exchange Rate Sync...');
         try {
             await syncExchangeRates();
         } catch (error) {
             logger.error('CRON Job Failed:', error);
         }
+    }, {
+        timezone: "Africa/Lagos"
     });
+
     logger.info('Cron Scheduler initialized: Running every 30 minutes.');
 };
 
@@ -79,5 +87,3 @@ module.exports = {
     syncExchangeRates,
     initRateCron
 };
-
- syncExchangeRates()
