@@ -54,7 +54,7 @@ const syncExchangeRates = async () => {
 
        // Set with a 1-hour expiration
         await redisClient.set(
-            'rates:global:latest',
+            'rates-cache:global',
             JSON.stringify(cachePayload),
             { EX: 3600 }
         );

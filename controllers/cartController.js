@@ -47,7 +47,7 @@ exports.getCart = async (req, res) => {
             include: { product: true }
         });
 
-        const cachedRates = await redisClient.get('rates:global:latest');
+        const cachedRates = await redisClient.get('rates-cache:global');
         const ratesInfo = cachedRates ? JSON.parse(cachedRates) : null;
         const rates = ratesInfo?.rates;
 

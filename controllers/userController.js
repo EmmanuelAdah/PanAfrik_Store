@@ -56,6 +56,7 @@ exports.updateUser = async (req, res) => {
         });
 
         res.status(200).json({
+            status: 'success',
             message: "Profile updated",
             user: generatePayload(updatedUser)
         });

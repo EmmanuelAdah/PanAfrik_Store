@@ -9,7 +9,7 @@ const uploadImage = async (file) => {
             const fileUri = `data:${file.mimetype};base64,${fileBase64}`;
 
             const uploadRes = await cloudinary.uploader.upload(fileUri, {
-                folder: 'panafrik_products',
+                folder: 'panafric_products',
                 resource_type: 'image'
             });
 

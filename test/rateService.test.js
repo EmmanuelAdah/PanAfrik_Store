@@ -48,7 +48,7 @@ describe('syncExchangeRates', () => {
 
         // Verify Redis Call
         expect(redisClient.set).toHaveBeenCalledWith(
-            'rates:global:latest',
+            'rates-cache:global',
             expect.stringContaining('"stale":false'),
             { EX: 3600 }
         );

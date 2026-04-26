@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1776440895741" clover="3.2.0">
-  <project timestamp="1776440895741" name="All files">
-    <metrics statements="626" coveredstatements="506" conditionals="4146" coveredconditionals="790" methods="1426" coveredmethods="359" elements="6198" coveredelements="1655" complexity="0" loc="626" ncloc="626" packages="9" files="29" classes="29"/>
+<coverage generated="1776515917162" clover="3.2.0">
+  <project timestamp="1776515917162" name="All files">
+    <metrics statements="637" coveredstatements="509" conditionals="4148" coveredconditionals="789" methods="1428" coveredmethods="359" elements="6213" coveredelements="1657" complexity="0" loc="637" ncloc="637" packages="9" files="29" classes="29"/>
     <package name="PanAfrik_Store">
-      <metrics statements="18" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <metrics statements="17" coveredstatements="17" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="app.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/app.js">
-        <metrics statements="18" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="17" coveredstatements="17" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="2" type="stmt"/>
         <line num="2" count="2" type="stmt"/>
         <line num="3" count="2" type="stmt"/>
@@ -22,12 +22,11 @@
         <line num="19" count="2" type="stmt"/>
         <line num="20" count="2" type="stmt"/>
         <line num="21" count="2" type="stmt"/>
-        <line num="22" count="2" type="stmt"/>
-        <line num="25" count="2" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
       </file>
     </package>
     <package name="PanAfrik_Store.config">
-      <metrics statements="24" coveredstatements="21" conditionals="4" coveredconditionals="2" methods="4" coveredmethods="2"/>
+      <metrics statements="30" coveredstatements="24" conditionals="4" coveredconditionals="2" methods="5" coveredmethods="2"/>
       <file name="cloudinaryConfig.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/config/cloudinaryConfig.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="3" type="stmt"/>
@@ -47,23 +46,29 @@
         <line num="18" count="2" type="stmt"/>
       </file>
       <file name="redisConfig.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/config/redisConfig.js">
-        <metrics statements="12" coveredstatements="10" conditionals="2" coveredconditionals="1" methods="4" coveredmethods="2"/>
+        <metrics statements="18" coveredstatements="13" conditionals="2" coveredconditionals="1" methods="5" coveredmethods="2"/>
         <line num="1" count="4" type="stmt"/>
         <line num="2" count="4" type="stmt"/>
-        <line num="5" count="4" type="stmt"/>
-        <line num="7" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+        <line num="6" count="4" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
-        <line num="16" count="4" type="stmt"/>
-        <line num="17" count="4" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
         <line num="19" count="4" type="stmt"/>
         <line num="20" count="4" type="stmt"/>
-        <line num="21" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="23" count="0" type="stmt"/>
+        <line num="21" count="4" type="stmt"/>
+        <line num="24" count="4" type="stmt"/>
+        <line num="25" count="4" type="stmt"/>
+        <line num="26" count="4" type="cond" truecount="1" falsecount="1"/>
         <line num="27" count="4" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
       </file>
     </package>
     <package name="PanAfrik_Store.controllers">
-      <metrics statements="282" coveredstatements="222" conditionals="106" coveredconditionals="69" methods="21" coveredmethods="17"/>
+      <metrics statements="285" coveredstatements="223" conditionals="108" coveredconditionals="69" methods="21" coveredmethods="17"/>
       <file name="authController.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/controllers/authController.js">
         <metrics statements="37" coveredstatements="33" conditionals="12" coveredconditionals="12" methods="2" coveredmethods="2"/>
         <line num="1" count="2" type="stmt"/>
@@ -219,7 +224,7 @@
         <line num="171" count="0" type="stmt"/>
       </file>
       <file name="productController.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/controllers/productController.js">
-        <metrics statements="75" coveredstatements="38" conditionals="30" coveredconditionals="9" methods="6" coveredmethods="3"/>
+        <metrics statements="78" coveredstatements="39" conditionals="32" coveredconditionals="9" methods="6" coveredmethods="3"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
         <line num="3" count="3" type="stmt"/>
@@ -246,55 +251,58 @@
         <line num="54" count="0" type="stmt"/>
         <line num="55" count="0" type="stmt"/>
         <line num="57" count="0" type="stmt"/>
-        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="63" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="64" count="0" type="stmt"/>
-        <line num="65" count="0" type="stmt"/>
-        <line num="76" count="0" type="stmt"/>
-        <line num="78" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="64" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
         <line num="79" count="0" type="stmt"/>
-        <line num="84" count="3" type="stmt"/>
-        <line num="85" count="4" type="stmt"/>
-        <line num="90" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="91" count="2" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="87" count="3" type="stmt"/>
+        <line num="88" count="4" type="stmt"/>
+        <line num="90" count="4" type="stmt"/>
+        <line num="92" count="4" type="stmt"/>
+        <line num="96" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="97" count="2" type="stmt"/>
-        <line num="98" count="2" type="stmt"/>
-        <line num="99" count="2" type="stmt"/>
-        <line num="101" count="2" type="stmt"/>
-        <line num="103" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="104" count="0" type="stmt"/>
-        <line num="110" count="2" type="stmt"/>
-        <line num="115" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="116" count="0" type="stmt"/>
-        <line num="117" count="0" type="stmt"/>
-        <line num="123" count="2" type="stmt"/>
-        <line num="135" count="2" type="stmt"/>
-        <line num="142" count="0" type="stmt"/>
-        <line num="143" count="0" type="stmt"/>
-        <line num="148" count="3" type="stmt"/>
-        <line num="149" count="2" type="stmt"/>
-        <line num="150" count="2" type="stmt"/>
-        <line num="151" count="2" type="stmt"/>
-        <line num="153" count="2" type="stmt"/>
-        <line num="154" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="157" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="158" count="1" type="stmt"/>
-        <line num="161" count="1" type="stmt"/>
+        <line num="103" count="2" type="stmt"/>
+        <line num="104" count="2" type="stmt"/>
+        <line num="106" count="2" type="stmt"/>
+        <line num="108" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="115" count="2" type="stmt"/>
+        <line num="120" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="128" count="2" type="stmt"/>
+        <line num="140" count="2" type="stmt"/>
+        <line num="147" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="153" count="3" type="stmt"/>
+        <line num="154" count="2" type="stmt"/>
+        <line num="155" count="2" type="stmt"/>
+        <line num="156" count="2" type="stmt"/>
+        <line num="158" count="2" type="stmt"/>
+        <line num="159" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="162" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="163" count="1" type="stmt"/>
         <line num="166" count="1" type="stmt"/>
-        <line num="168" count="0" type="stmt"/>
-        <line num="169" count="0" type="stmt"/>
-        <line num="174" count="3" type="stmt"/>
-        <line num="175" count="1" type="stmt"/>
-        <line num="176" count="1" type="stmt"/>
-        <line num="177" count="1" type="stmt"/>
-        <line num="179" count="1" type="stmt"/>
-        <line num="180" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="182" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="183" count="1" type="stmt"/>
-        <line num="186" count="0" type="stmt"/>
+        <line num="171" count="1" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="174" count="0" type="stmt"/>
+        <line num="179" count="3" type="stmt"/>
+        <line num="180" count="1" type="stmt"/>
+        <line num="181" count="1" type="stmt"/>
+        <line num="182" count="1" type="stmt"/>
+        <line num="184" count="1" type="stmt"/>
+        <line num="185" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="187" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="188" count="1" type="stmt"/>
         <line num="191" count="0" type="stmt"/>
-        <line num="193" count="0" type="stmt"/>
-        <line num="194" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
       </file>
       <file name="rateController.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/controllers/rateController.js">
         <metrics statements="25" coveredstatements="24" conditionals="6" coveredconditionals="5" methods="1" coveredmethods="1"/>
@@ -352,17 +360,17 @@
         <line num="51" count="1" type="cond" truecount="1" falsecount="1"/>
         <line num="53" count="1" type="stmt"/>
         <line num="58" count="1" type="stmt"/>
-        <line num="63" count="0" type="stmt"/>
         <line num="64" count="0" type="stmt"/>
-        <line num="68" count="2" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
         <line num="69" count="2" type="stmt"/>
         <line num="70" count="2" type="stmt"/>
-        <line num="72" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="73" count="1" type="stmt"/>
-        <line num="76" count="1" type="stmt"/>
-        <line num="78" count="1" type="stmt"/>
-        <line num="80" count="0" type="stmt"/>
+        <line num="71" count="2" type="stmt"/>
+        <line num="73" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="79" count="1" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
       </file>
     </package>
     <package name="PanAfrik_Store.middleware">
@@ -484,14 +492,14 @@
       <file name="library.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/prisma/generated/client/runtime/library.js">
         <metrics statements="50" coveredstatements="32" conditionals="4000" coveredconditionals="697" methods="1376" coveredmethods="324"/>
         <line num="5" count="1952" type="cond" truecount="75" falsecount="95"/>
-        <line num="6" count="48" type="cond" truecount="3" falsecount="1"/>
-        <line num="7" count="100" type="cond" truecount="58" falsecount="132"/>
+        <line num="6" count="52" type="cond" truecount="3" falsecount="1"/>
+        <line num="7" count="104" type="cond" truecount="58" falsecount="132"/>
         <line num="8" count="42" type="cond" truecount="40" falsecount="150"/>
         <line num="9" count="4444" type="cond" truecount="17" falsecount="22"/>
         <line num="10" count="2" type="cond" truecount="60" falsecount="126"/>
         <line num="13" count="2" type="cond" truecount="1" falsecount="10"/>
         <line num="15" count="0" type="cond" truecount="0" falsecount="6"/>
-        <line num="16" count="48" type="cond" truecount="14" falsecount="24"/>
+        <line num="16" count="52" type="cond" truecount="14" falsecount="24"/>
         <line num="17" count="2" type="cond" truecount="2" falsecount="12"/>
         <line num="19" count="0" type="stmt"/>
         <line num="23" count="0" type="cond" truecount="0" falsecount="4"/>
@@ -536,7 +544,7 @@
       </file>
     </package>
     <package name="PanAfrik_Store.routes">
-      <metrics statements="55" coveredstatements="55" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <metrics statements="56" coveredstatements="56" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="authRouter.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/routes/authRouter.js">
         <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="2" type="stmt"/>
@@ -574,7 +582,7 @@
         <line num="31" count="2" type="stmt"/>
       </file>
       <file name="productRouter.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/routes/productRouter.js">
-        <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
         <line num="3" count="3" type="stmt"/>
@@ -582,11 +590,12 @@
         <line num="5" count="3" type="stmt"/>
         <line num="6" count="3" type="stmt"/>
         <line num="7" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="14" count="3" type="stmt"/>
-        <line num="21" count="3" type="stmt"/>
-        <line num="28" count="3" type="stmt"/>
-        <line num="35" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="38" count="3" type="stmt"/>
       </file>
       <file name="rateRouter.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/routes/rateRouter.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -612,16 +621,16 @@
       </file>
     </package>
     <package name="PanAfrik_Store.services">
-      <metrics statements="79" coveredstatements="52" conditionals="10" coveredconditionals="7" methods="10" coveredmethods="5"/>
+      <metrics statements="79" coveredstatements="50" conditionals="10" coveredconditionals="6" methods="10" coveredmethods="5"/>
       <file name="currencyService.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/services/currencyService.js">
-        <metrics statements="34" coveredstatements="22" conditionals="4" coveredconditionals="3" methods="5" coveredmethods="4"/>
+        <metrics statements="34" coveredstatements="20" conditionals="4" coveredconditionals="2" methods="5" coveredmethods="4"/>
         <line num="1" count="4" type="stmt"/>
         <line num="2" count="4" type="stmt"/>
         <line num="4" count="4" type="stmt"/>
         <line num="5" count="1" type="stmt"/>
         <line num="6" count="1" type="stmt"/>
-        <line num="8" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="9" count="1" type="stmt"/>
+        <line num="8" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="9" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
         <line num="14" count="0" type="stmt"/>
         <line num="16" count="0" type="stmt"/>
@@ -703,11 +712,11 @@
       </file>
     </package>
     <package name="PanAfrik_Store.utils">
-      <metrics statements="25" coveredstatements="23" conditionals="4" coveredconditionals="2" methods="7" coveredmethods="5"/>
+      <metrics statements="27" coveredstatements="24" conditionals="4" coveredconditionals="2" methods="8" coveredmethods="5"/>
       <file name="catchAsyncErrors.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/utils/catchAsyncErrors.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
         <line num="1" count="3" type="stmt"/>
-        <line num="2" count="36" type="stmt"/>
+        <line num="2" count="39" type="stmt"/>
         <line num="3" count="22" type="stmt"/>
       </file>
       <file name="generatePayload.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/utils/generatePayload.js">
@@ -728,18 +737,20 @@
         <line num="39" count="5" type="stmt"/>
       </file>
       <file name="validator.js" path="/home/emmanuel-adah/Documents/PanAfrik_Store/utils/validator.js">
-        <metrics statements="11" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="2"/>
+        <metrics statements="13" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="2"/>
         <line num="1" count="2" type="stmt"/>
         <line num="4" count="2" type="stmt"/>
         <line num="7" count="2" type="stmt"/>
         <line num="65" count="2" type="stmt"/>
         <line num="105" count="2" type="stmt"/>
         <line num="125" count="2" type="stmt"/>
-        <line num="126" count="4" type="stmt"/>
-        <line num="129" count="2" type="stmt"/>
-        <line num="130" count="4" type="stmt"/>
-        <line num="131" count="0" type="stmt"/>
-        <line num="132" count="0" type="stmt"/>
+        <line num="137" count="2" type="stmt"/>
+        <line num="138" count="4" type="stmt"/>
+        <line num="141" count="2" type="stmt"/>
+        <line num="142" count="4" type="stmt"/>
+        <line num="143" count="0" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
+        <line num="145" count="0" type="stmt"/>
       </file>
     </package>
   </project>
