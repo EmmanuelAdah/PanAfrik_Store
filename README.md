@@ -41,11 +41,15 @@
 ```
 
 ---
-## 📊 Database Schema HighlightsThe system leverages Prisma with PostgreSQL to maintain financial integrity:
+## 📊 Database Schema Highlights
+- **The system leverages Prisma with PostgreSQL to maintain financial integrity:**
 
 - **User:** Tracks baseCurrency and country for localized experiences.
+- **Product:** Stores merchant products with their local currency.
 - **Order:** Stores exchangeRateApplied (Decimal 18, 6) to provide a permanent audit trail.
 - **OrderItem:** Captures unitPriceMerchantCurrency to insulate merchants from FX risks.
+- **CartItem:** For keeping track of individual cart.
+- **RateCache:** Keep track of rates for every rates API update (every 30 minutes), while maintaining the latest rates.
 - **PayoutNotification:** An automated system tracking merchant settlement status (pending, sent).
 
 ## 🚦 API ReferenceAuthentication & UserMethodEndpointDescription
@@ -92,4 +96,4 @@ npm run dev
 
 ## 🧪 Testing & Quality
 The project uses Jest and Supertest. 
-Run the following to see the coverage report located in the /coverage folder:Bashnpm test
+Run the following to see the coverage report located in the /coverage folder: npm test
