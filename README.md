@@ -40,29 +40,30 @@
 └── server.js           # Server entry point
 ```
 
+---
 ## 📊 Database Schema HighlightsThe system leverages Prisma with PostgreSQL to maintain financial integrity:
----
-User: Tracks baseCurrency and country for localized experiences.
-Order: Stores exchangeRateApplied (Decimal 18, 6) to provide a permanent audit trail.
-OrderItem: Captures unitPriceMerchantCurrency to insulate merchants from FX risks.
-PayoutNotification: An automated system tracking merchant settlement status (pending, sent).
----
+
+- **User:** Tracks baseCurrency and country for localized experiences.
+- **Order:** Stores exchangeRateApplied (Decimal 18, 6) to provide a permanent audit trail.
+- **OrderItem:** Captures unitPriceMerchantCurrency to insulate merchants from FX risks.
+- **PayoutNotification:** An automated system tracking merchant settlement status (pending, sent).
 
 ## 🚦 API ReferenceAuthentication & UserMethodEndpointDescription
----
-POST/api/auth/register -- Register as a Customer or Merchant
-POST/api/auth/login -- Secure login and JWT issuance
-PUT/api/user/update/:idUpdate -- profile (Auth & Role Protected)Commerce 
+
+- POST/api/auth/register -- Register as a Customer or Merchant
+- POST/api/auth/login -- Secure login and JWT issuance
+- PUT/api/user/update/:idUpdate -- profile (Auth & Role Protected)Commerce 
 
 LogicMethodEndpointAccessDescription
 
-GET/api/productsPublicList active products
-POST/api/productsMerchantUpload product with Cloudinary image
-POST/api/cartCustomerAdd items to cross-border cart
-POST/api/order/checkoutCustomerAtomic checkout with rate 
----
+- GET/api/productsPublicList active products
+- POST/api/productsMerchantUpload product with Cloudinary image
+- POST/api/cartCustomerAdd items to cross-border cart
+- POST/api/order/checkoutCustomerAtomic checkout with rate 
+
 ## lockingFinancial DataMethodEndpointDescription
-GET/api/rates -- Retrieve the latest cached FX rates
+- GET/api/rates -- Retrieve the latest cached FX rates
+---
 
 ## 🔧 Setup & Installation
 ```
