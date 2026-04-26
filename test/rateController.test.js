@@ -62,7 +62,7 @@ describe('🚀 Comprehensive API Endpoint: GET /rates', () => {
 
             // Critical: Ensure the controller "self-healed" Redis for the next user
             expect(redisClient.set).toHaveBeenCalledWith(
-                'rates:global:latest',
+                'rates-cache:global',
                 expect.stringContaining('"stale":true')
             );
         });

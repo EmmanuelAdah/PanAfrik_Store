@@ -4,7 +4,7 @@ const { syncExchangeRates } = require('../services/rateService');
 const logger = require('../utils/logger');
 
 exports.getLatestRates = async (req, res) => {
-    const CACHE_KEY = 'rates:global:latest';
+    const CACHE_KEY = 'rates-cache:global';
 
     try {
         // Try to fetch from Redis

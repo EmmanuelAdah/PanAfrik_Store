@@ -85,20 +85,22 @@ exports.getProduct = async (req, res) => {
 
 // POST /products - Merchant only
 exports.createProduct = async (req, res) => {
+    console.log("Received request body:", req.body);
+
+    const { name, description, price, category } = req.body;
+
     const { error } = validateProduct({
-        ...req.body,
+        name, description, price, category,
         image: req.file // Multer attaches the file here
     });
-
     if (error) {
         return res.status(400).json({
             success: false,
             error: error.details[0].message
         });
-    }
 
+    }
     try {
-        const { name, description, price, category } = req.body;
         const merchantId = req.user.id;
 
         let uploadedImageUrl = await uploadImage(req.file);

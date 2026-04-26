@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.5% </span>
+                <span class="strong">46.42% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>38/80</span>
+                <span class='fraction'>39/84</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30% </span>
+                <span class="strong">28.12% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/30</span>
+                <span class='fraction'>9/32</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.66% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>38/75</span>
+                <span class='fraction'>39/78</span>
             </div>
         
             
@@ -258,7 +258,12 @@
 <a name='L193'></a><a href='#L193'>193</a>
 <a name='L194'></a><a href='#L194'>194</a>
 <a name='L195'></a><a href='#L195'>195</a>
-<a name='L196'></a><a href='#L196'>196</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
@@ -311,6 +316,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -344,6 +352,9 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -354,7 +365,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -455,7 +465,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
-const { validateProduct } = require('../utils/validator');
+const { validateProduct, validateReq } = require('../utils/validator');
 const { convertCurrency } = require('../services/currencyService');
 const uploadImage = require('../services/uploadImage');
 &nbsp;
@@ -504,10 +514,13 @@ exports.getAllProducts = <span class="fstat-no" title="function not covered" >as
 };
 &nbsp;
 // GET /products/:id - Single product with conversion
-exports.getProductById = <span class="fstat-no" title="function not covered" >as</span>ync (req, res) =&gt; {
+exports.getProduct = <span class="fstat-no" title="function not covered" >as</span>ync (req, res) =&gt; {
 <span class="cstat-no" title="statement not covered" >    try {</span>
         const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
         const { currency } = <span class="cstat-no" title="statement not covered" >req.query;</span>
+&nbsp;
+        const { error } = <span class="cstat-no" title="statement not covered" >validateReq({ id, currency });</span>
+<span class="cstat-no" title="statement not covered" >        if (error) <span class="cstat-no" title="statement not covered" >return res.status(400).json({ error: error.details[0].message });</span></span>
 &nbsp;
         const product = <span class="cstat-no" title="statement not covered" >await prisma.product.findUnique({</span>
             where: { id, isActive: true }
@@ -537,20 +550,22 @@ exports.getProductById = <span class="fstat-no" title="function not covered" >as
 &nbsp;
 // POST /products - Merchant only
 exports.createProduct = async (req, res) =&gt; {
+    console.log("Received request body:", req.body);
+&nbsp;
+    const { name, description, price, category } = req.body;
+&nbsp;
     const { error } = validateProduct({
-        ...req.body,
+        name, description, price, category,
         image: req.file // Multer attaches the file here
     });
-&nbsp;
     if (error) {
         return res.status(400).json({
             success: false,
             error: error.details[0].message
         });
-    }
 &nbsp;
+    }
     try {
-        const { name, description, price, category } = req.body;
         const merchantId = req.user.id;
 &nbsp;
         let uploadedImageUrl = await uploadImage(req.file);
@@ -655,7 +670,7 @@ exports.deleteProduct = async (req, res) =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-17T15:48:15.751Z
+                at 2026-04-18T12:38:37.173Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

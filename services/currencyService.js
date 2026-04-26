@@ -56,7 +56,7 @@ const fetchGrossRates = async () => {
 
 const convertCurrency = async (amount, fromCurrency, toCurrency) => {
     try {
-        const exchange = await redisClient.get('rates:global:latest');
+        const exchange = await redisClient.get('rates-cache:global');
 
         const rate = exchange.rates[fromCurrency][toCurrency]
         return amount * rate;

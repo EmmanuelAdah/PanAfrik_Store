@@ -18,7 +18,7 @@ exports.checkOut = async (req, res) => {
             if (cartItems.length === 0) throw new Error("CART_EMPTY");
 
             // Rate Locking: Fetch & Lock Exchange Rate
-            const cachedData = await redisClient.get('rates:global:latest');
+            const cachedData = await redisClient.get('rates-cache:global');
             let rateData = cachedData ? JSON.parse(cachedData).rates : null;
 
             if (!rateData) {
