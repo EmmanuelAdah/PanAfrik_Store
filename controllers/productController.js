@@ -98,7 +98,6 @@ exports.createProduct = async (req, res) => {
             success: false,
             error: error.details[0].message
         });
-
     }
     try {
         const merchantId = req.user.id;
