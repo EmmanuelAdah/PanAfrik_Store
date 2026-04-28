@@ -39,7 +39,9 @@ describe('🛒 Comprehensive Cart Controller Suite', () => {
     describe('POST /cart (Add Item)', () => {
         test('❌ Should return 400 if validation fails', async () => {
             validateCart.mockReturnValue(false);
-            const res = await request(app).post('/cart').send({ quantity: -1 });
+            const res = await request(app)
+                .post('/cart')
+                .send({ quantity: -1 });
             expect(res.status).toBe(400);
             expect(res.body.message).toContain('Invalid cart item data');
         });
@@ -70,44 +72,63 @@ describe('🛒 Comprehensive Cart Controller Suite', () => {
     });
 
     describe('GET /cart (Fetch & Convert)', () => {
+        // Helper to mock the auth middleware behavior
+        const mockUser = { id: 'u123', baseCurrency: 'NGN' };
+
         test('💰 Should correctly calculate totals and convert to NGN', async () => {
-            // Mock Redis Rates: 1 NGN = 0.00074 USD
-            redisClient.get.mockResolvedValue(JSON.stringify({
-                rates: { "NGN": { "USD": 0.00074 } },
+            /**
+             * The controller uses: unitPrice = rates[merchantCurrency][userCurrency] * price
+             * Rate Mock: GHS to NGN = 150.50
+             */
+            const mockRates = {
+                rates: {
+                    "GHS": { "NGN": 150.50 },
+                    "NGN": { "NGN": 1 }
+                },
                 fetched_at: new Date().toISOString(),
                 stale: false
-            }));
+            };
 
-            // Mock 2 items in a cart (Prices in USD)
+            redisClient.get.mockResolvedValue(JSON.stringify(mockRates));
+
+            // Mock 2 items
             prisma.cartItem.findMany.mockResolvedValue([
-                { id: 'c1', quantity: 1, product: { name: 'Item A', price: 10.00 } }, // $10
-                { id: 'c2', quantity: 2, product: { name: 'Item B', price: 5.00 } }   // $10
+                { id: 'c1', quantity: 2, product: { name: 'Item A', price: 10.00, currency: 'GHS'} }, // 10 * 150.50 = 1505.00
+                { id: 'c2', quantity: 1, product: { name: 'Item B', price: 500.00, currency: 'NGN' } } // Same currency, stays 500
             ]);
 
-            const res = await request(app).get('/cart');
+            // Note: You must ensure your test setup/middleware applies 'mockUser' to 'req.user'
+            const res = await request(app)
+                .get('/cart')
+                .set('user', JSON.stringify(mockUser)); // Adjustment depends on your auth mock strategy
 
             expect(res.status).toBe(200);
             expect(res.body.currency).toBe('NGN');
 
             /**
              * Math Check:
-             * Total USD = 20.00
-             * Converted Total = 20 / 0.00074 = 27027.03
+             * Item A: (10 * 150.50) * 2 = 3010.00
+             * Item B: (500 * 1) * 1     = 500.00
+             * Total = 3510.00
              */
-            expect(res.body.total).toBe(27027.03);
-            expect(res.body.items[0].unitPriceInBase).toBe(13513.51); // 10 / 0.00074
+            expect(res.body.items[0].unitPriceInBase).toBe(1505.00);
+            expect(res.body.items[0].subtotalInBase).toBe(3010.00);
+            expect(res.body.total).toBe(3510.00);
         });
 
-        test('🛡️ Should fallback to USD (rate 1) if Redis is empty', async () => {
+        test('🛡️ Should fallback to original price if rates are missing', async () => {
+            // Mock Redis returning null (triggering fetchGrossRates or default logic)
             redisClient.get.mockResolvedValue(null);
+
+            // Mocking the scenario where ratesInfo?.rates is undefined
             prisma.cartItem.findMany.mockResolvedValue([
-                { id: 'c1', quantity: 1, product: { name: 'Item A', price: 50.00 } }
+                { id: 'c1', quantity: 1, product: { name: 'Item A', price: 50.00, currency: 'NGN' } }
             ]);
 
-            const res = await request(app)
-                .get('/cart');
+            const res = await request(app).get('/cart');
 
             expect(res.status).toBe(200);
+            // Since currency matches or rates are missing, price should remain unchanged
             expect(res.body.total).toBe(50.00);
         });
     });

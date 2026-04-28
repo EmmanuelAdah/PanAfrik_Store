@@ -2,6 +2,7 @@ const prisma = require('../config/prisma');
 const redisClient = require('../config/redisConfig');
 const logger = require('../utils/logger');
 const { validateCart } = require('../utils/validator');
+const { fetchGrossRates } = require('../services/currencyService');
 
 exports.addToCart = async (req, res) => {
     const isValid = validateCart(req.body);
@@ -13,7 +14,7 @@ exports.addToCart = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // 1. Validate product exists and is active
+        // Validate product exists and is active
         const product = await prisma.product.findUnique({
             where: { id: productId }
         });
@@ -22,7 +23,7 @@ exports.addToCart = async (req, res) => {
             return res.status(404).json({ message: 'Product not found or currently inactive.' });
         }
 
-        // 2. Upsert cart item
+        // Insert cart item into the database
         const cartItem = await prisma.cartItem.upsert({
             where: { unique_user_product: { userId, productId } },
             update: { quantity: { increment: quantity } },
@@ -39,7 +40,7 @@ exports.addToCart = async (req, res) => {
 exports.getCart = async (req, res) => {
     const userId = req.user.id;
     // Assume req.user.baseCurrency is attached by your Auth middleware from the User model
-    const userCurrency = req.user.baseCurrency || 'USD';
+    const userCurrency = req.user.baseCurrency;
 
     try {
         const items = await prisma.cartItem.findMany({
@@ -48,26 +49,31 @@ exports.getCart = async (req, res) => {
         });
 
         const cachedRates = await redisClient.get('rates-cache:global');
-        const ratesInfo = cachedRates ? JSON.parse(cachedRates) : null;
+        const ratesInfo = cachedRates ? JSON.parse(cachedRates) : await fetchGrossRates();
         const rates = ratesInfo?.rates;
 
         let totalInBase = 0;
         const formattedItems = items.map(item => {
-            const priceUSD = item.product.price;
 
-            // Logic: Your sync tool saves { "NGN": { "USD": 0.00074 } }
-            // To get NGN from USD, we divide by the NGN-to-USD rate
-            const rateToUSD = rates?.[userCurrency]?.['USD'] || 1;
-            const convertedPrice = priceUSD / rateToUSD;
+            const productPrice = item.product.price;
+            const merchantCurrency = item.product.currency;
 
-            const subtotal = convertedPrice * item.quantity;
+            // To get the total payment amount for each product depending on the rates and quantity
+            let unitPrice;
+            if (merchantCurrency !== userCurrency) {
+                unitPrice = rates?.[merchantCurrency]?.[userCurrency] * productPrice;
+            } else {
+                unitPrice = productPrice;
+            }
+
+            const subtotal = unitPrice * item.quantity;
             totalInBase += subtotal;
 
             return {
                 id: item.id,
                 productName: item.product.name,
                 quantity: item.quantity,
-                unitPriceInBase: Number(convertedPrice.toFixed(2)),
+                unitPriceInBase: Number(unitPrice.toFixed(2)),
                 subtotalInBase: Number(subtotal.toFixed(2))
             };
         });
@@ -90,7 +96,7 @@ exports.removeFromCart = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // Ensure user owns the item before deleting
+        // Ensure the user owns the item before deleting
         const deleted = await prisma.cartItem.deleteMany({
             where: { id: itemId, userId }
         });

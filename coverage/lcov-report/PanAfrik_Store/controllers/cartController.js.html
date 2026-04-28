@@ -330,12 +330,12 @@ exports.getCart = async (req, res) =&gt; {
 &nbsp;
         let totalInBase = 0;
         const formattedItems = items.map(item =&gt; {
-            const priceUSD = item.product.price;
+            const merchantCurrency = item.product.price;
 &nbsp;
             // Logic: Your sync tool saves { "NGN": { "USD": 0.00074 } }
             // To get NGN from USD, we divide by the NGN-to-USD rate
             const rateToUSD = rates?.[userCurrency]?.['USD'] || 1;
-            const convertedPrice = priceUSD / rateToUSD;
+            const convertedPrice = merchantCurrency / rateToUSD;
 &nbsp;
             const subtotal = convertedPrice * item.quantity;
             totalInBase += subtotal;
