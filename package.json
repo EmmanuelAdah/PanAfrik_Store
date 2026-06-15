@@ -19,6 +19,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "@prisma/config": "^7.7.0",
+    "axios": "^1.18.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",

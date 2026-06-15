@@ -1,6 +1,5 @@
 const request = require('supertest');
-const express = require('express');
-const productRoutes = require('../routes/productRouter');
+const app = require('../app')
 
 // --- Mocks ---
 jest.mock('../config/prisma', () => ({
@@ -29,11 +28,6 @@ jest.mock('../middleware/jwt', () => ({
         next();
     }
 }));
-
-// Initialize App
-const app = express();
-app.use(express.json());
-app.use('/products', productRoutes);
 
 const prisma = require('../config/prisma');
 
