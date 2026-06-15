@@ -19,6 +19,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(corsConfig());
 app.use(helmet());
 
+ // --- HEALTH CHECK ENDPOINT ---
+app.get('/health', (req, res) => {
+  const healthcheck = {
+    status: 'UP',
+    uptime: process.uptime(), // Returns the number of seconds the server has been running
+    timestamp: new Date().toISOString(),
+    memoryUsage: process.memoryUsage() // For monitoring memory leaks
+  };
+
+  try {
+    res.status(200).json(healthcheck);
+  } catch (error) {
+    healthcheck.status = 'DOWN';
+    res.status(503).json(healthcheck);
+  }
+});
+
 app.use('/auth', require('./routes/authRouter'));
 app.use('/users', require('./routes/userRouter'));
 app.use('/products', require('./routes/productRouter'));
