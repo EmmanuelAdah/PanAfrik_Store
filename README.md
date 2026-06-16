@@ -40,6 +40,91 @@
 └── server.js           # Server entry point
 ```
 
+# API Documentation
+
+**Base URL:** https://panafrik-store.onrender.com
+
+## Authentication
+
+| Method | Endpoint         | Description                        |
+| ------ | ---------------- | ---------------------------------- |
+| POST   | `/auth/register` | Create a new account               |
+| POST   | `/auth/login`    | Log in and receive an access token |
+
+---
+
+## Users
+
+| Method | Endpoint            | Description             |
+| ------ | ------------------- | ----------------------- |
+| GET    | `/users/:id`        | View user profile       |
+| PUT    | `/users/update/:id` | Update user information |
+| DELETE | `/users/delete/:id` | Delete user account     |
+
+> Requires login.
+
+---
+
+## Products
+
+| Method | Endpoint        | Description             |
+| ------ | --------------- | ----------------------- |
+| GET    | `/products`     | View all products       |
+| GET    | `/products/:id` | View a specific product |
+| POST   | `/products`     | Create a product        |
+| PUT    | `/products/:id` | Update a product        |
+| DELETE | `/products/:id` | Delete a product        |
+
+> Creating, updating, and deleting products is restricted to merchants.
+
+---
+
+## Shopping Cart
+
+| Method | Endpoint        | Description              |
+| ------ | --------------- | ------------------------ |
+| POST   | `/cart`         | Add a product to cart    |
+| GET    | `/cart`         | View cart items          |
+| DELETE | `/cart/:itemId` | Remove an item from cart |
+
+> Requires login.
+
+---
+
+## Orders
+
+| Method | Endpoint      | Description          |
+| ------ | ------------- | -------------------- |
+| POST   | `/checkout`   | Place an order       |
+| GET    | `/orders`     | View all your orders |
+| GET    | `/orders/:id` | View order details   |
+
+> Requires login.
+
+---
+
+## Exchange Rates
+
+| Method | Endpoint | Description                |
+| ------ | -------- | -------------------------- |
+| GET    | `/rates` | Get current exchange rates |
+
+---
+
+## Access Control
+
+* **Customers** can manage their profile, cart, and orders.
+* **Merchants** can manage products and view orders.
+* Protected routes require a valid login token.
+
+## Example
+
+To get rates:
+
+```http
+GET https://panafrik-store.onrender.com/rates
+```
+
 ---
 ## 📊 Database Schema Highlights
 - **The system leverages Prisma with PostgreSQL to maintain financial integrity:**
