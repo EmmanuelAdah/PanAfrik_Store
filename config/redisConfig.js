@@ -1,11 +1,15 @@
 const { createClient } = require('redis');
 const logger = require('../utils/logger');
 
-const REDIS_URL = process.env.REDIS_URL;
+// const REDIS_URL = process.env.REDIS_URL;
 
 const redisClient = createClient({
-    url: REDIS_URL,
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
     socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+
         // This handles reconnections AFTER the initial connection is established
         reconnectStrategy: (retries) => {
             const delay = Math.min(retries * 100, 3000);
@@ -13,7 +17,8 @@ const redisClient = createClient({
             return delay;
         },
         connectTimeout: 10000
-    }
+    },
+
 });
 
 redisClient.on('error', (err) => logger.error('❌ Redis Error:', err));
