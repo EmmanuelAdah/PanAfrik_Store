@@ -30,7 +30,10 @@ exports.getLatestRates = async (req, res) => {
 
             try {
                 // Re-populate Redis so the next request is fast
-                await redisClient.set(CACHE_KEY, JSON.stringify(fallbackPayload));
+                await redisClient.set(
+                    CACHE_KEY, JSON.stringify(fallbackPayload),
+                    { EX: 3600 }
+                );
             } catch (redisError) {
                 redisError.message = 'Redis cache update failed. Using stale data.';
                 logger.error(redisError.message);
